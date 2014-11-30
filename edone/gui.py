@@ -61,6 +61,7 @@ class EdoneWin(StandardWindow):
         self.tasks_list = None
         self.filters = None
         self.task_view = None
+        self.search_entry = None
 
         # the window
         StandardWindow.__init__(self, "edone", "Edone")
@@ -115,12 +116,15 @@ class EdoneWin(StandardWindow):
         table.pack(hbox3, 2, 0, 1, 1)
         hbox3.show()
         
-        search = Entry(hbox3, single_line=True, scrollable=True,
+        en = Entry(hbox3, single_line=True, scrollable=True,
                        size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
-        search.part_text_set('guide', 'search (TODO)')
-        search.content_set('end', Icon(search, standard='home', size_hint_min=(16,16)))
-        hbox3.pack_end(search)
-        search.show()
+        en.part_text_set('guide', 'search')
+        en.callback_changed_user_add(self._search_changed_user_cb)
+        ic = Icon(en, standard='find', size_hint_min=(16,16))
+        en.content_set('end', ic)
+        hbox3.pack_end(en)
+        en.show()
+        self.search_entry = en
 
         sep = Separator(vbox, horizontal=True)
         vbox.pack_end(sep)
@@ -175,6 +179,9 @@ class EdoneWin(StandardWindow):
         self.tasks_list.first_item.selected = True
         self.task_view.focus = True
         self.task_view.select_all()
+
+    def _search_changed_user_cb(self, en):
+        self.tasks_list.rebuild()
 
 
 FILTER_STATUS_ALL = 0
@@ -280,19 +287,25 @@ class TasksList(Genlist):
         self.top_widget.task_view.clear()
 
         filters = self.top_widget.filters
+        ctx_set = filters.context_filter
+        prj_set = filters.project_filter
+        search = self.top_widget.search_entry.text
 
         for t in TASKS:
             if (filters.status == FILTER_STATUS_DONE and not t.completed) or \
                (filters.status == FILTER_STATUS_TODO and t.completed):
                 continue
 
-            st = filters.context_filter
-            f1 = True if st is None else len(st.intersection(t.contexts)) > 0
+            f1 = True if ctx_set is None else \
+                    len(ctx_set.intersection(t.contexts)) > 0
 
-            st = filters.project_filter
-            f2 = True if st is None else len(st.intersection(t.projects)) > 0
+            f2 = True if prj_set is None else \
+                    len(prj_set.intersection(t.projects)) > 0
 
-            if f1 and f2:
+            f3 = True if not search else \
+                    search.lower() in t.raw_txt.lower()
+
+            if f1 and f2 and f3:
                 self.item_append(self.itc, t)
 
     def update_selected(self):
