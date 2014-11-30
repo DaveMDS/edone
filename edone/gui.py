@@ -39,7 +39,7 @@ from efl.elementary.segment_control import SegmentControl
 from efl.elementary.separator import Separator
 
 from edone.utils import options, theme_resource_get
-from edone.tasks import TASKS, load_from_file, save_to_file
+from edone.tasks import Task, TASKS, load_from_file, save_to_file
 
 
 EXPAND_BOTH = EVAS_HINT_EXPAND, EVAS_HINT_EXPAND
@@ -84,17 +84,18 @@ class EdoneWin(StandardWindow):
         table.pack(hbox1, 0, 0, 1, 1)
         hbox1.show()
 
-        b = Button(hbox1, text="Save")
+        b = Button(hbox1, text="Save", content=Icon(hbox1, standard='document-save'))
         b.callback_clicked_add(lambda b: self.save())
         hbox1.pack_end(b)
         b.show()
 
-        b = Button(hbox1, text="Reload")
+        b = Button(hbox1, text="Reload", content=Icon(hbox1, standard='reload'))
         b.callback_clicked_add(lambda b: self.reload())
         hbox1.pack_end(b)
         b.show()
 
-        b = Button(hbox1, text="Add", disabled=True)
+        b = Button(hbox1, text="Add", content=Icon(hbox1, standard='add'))
+        b.callback_clicked_add(lambda b: self.task_add())
         hbox1.pack_end(b)
         b.show()
 
@@ -166,6 +167,14 @@ class EdoneWin(StandardWindow):
 
     def save(self):
         save_to_file(options.txt_file)
+
+    def task_add(self):
+        t = Task('New item')
+        TASKS.insert(0, t)
+        self.tasks_list.rebuild()
+        self.tasks_list.first_item.selected = True
+        self.task_view.focus = True
+        self.task_view.select_all()
 
 
 FILTER_STATUS_ALL = 0

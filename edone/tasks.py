@@ -30,8 +30,8 @@ TASKS = []
 
 class Task(object):
     """ Class to describe a single task """
-    def __init__(self):
-        self.raw_txt = ''
+    def __init__(self, raw_text=''):
+        self.raw_txt = raw_text
         self.completed = False
         self.text = 'todo'
         self.priority = None # 'A'
@@ -42,6 +42,9 @@ class Task(object):
 
         # self.notes = None # note:
         # self.files = []   # files:
+
+        if raw_text:
+            self.parse_from_raw()
 
     def __repr__(self):
         return '<Task: "%s" +%s @%s>' % (self.raw_txt, self.projects, self.contexts)
@@ -97,9 +100,7 @@ def load_from_file(path):
 
     with open(path) as f:
         for line in f:
-            t = Task()
-            t.raw_txt = line.strip()
-            t.parse_from_raw()
+            t = Task(line.strip())
             TASKS.append(t)
 
     for t in TASKS:

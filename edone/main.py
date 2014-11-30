@@ -38,12 +38,10 @@ def main():
         with open(options.txt_file, 'a') as f:
             print('(A) Welcome to Etodo', file=f)
 
-    # create the main window
+    # create the main window and load the todo file
     elm.init()
     win = EdoneWin()
-
-    # try to load a repo, from command-line or cwd (else show the RepoSelector)
-    # RepoSelector(win, args.repo or os.getcwd())
+    win.reload()
 
     # enter the mainloop
     elm.run()
