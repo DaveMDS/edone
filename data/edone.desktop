@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Edone
+GenericName=Tasks organizer
+Exec=edone
+Icon=edone
+Type=Application
+Terminal=false
+Categories=Utility;
+StartupNotify=true
