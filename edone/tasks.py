@@ -89,6 +89,7 @@ class Task(object):
 
         self.text = txt
 
+
 def load_from_file(path):
     print('Loading tasks from file: "%s"' % path)
 
@@ -108,4 +109,8 @@ def load_from_file(path):
 
 def save_to_file(path):
     print('Saving tasks to file: "%s"' % path)
+
+    with open(path, 'w') as f:
+        for t in TASKS:
+            print(t.raw_txt, file=f)
 

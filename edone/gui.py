@@ -38,7 +38,7 @@ from efl.elementary.segment_control import SegmentControl
 from efl.elementary.separator import Separator
 
 from edone.utils import options, theme_resource_get
-from edone.tasks import TASKS, load_from_file
+from edone.tasks import TASKS, load_from_file, save_to_file
 
 
 EXPAND_BOTH = EVAS_HINT_EXPAND, EVAS_HINT_EXPAND
@@ -57,6 +57,7 @@ class EdoneWin(StandardWindow):
         # main widget 'pointers'
         self.tasks_list = None
         self.filters = None
+        self.task_view = None
 
         # the window
         StandardWindow.__init__(self, "edone", "Edone")
@@ -80,7 +81,8 @@ class EdoneWin(StandardWindow):
         table.pack(hbox1, 0, 0, 1, 1)
         hbox1.show()
 
-        b = Button(hbox1, text="Save", disabled=True)
+        b = Button(hbox1, text="Save")
+        b.callback_clicked_add(lambda b: self.save())
         hbox1.pack_end(b)
         b.show()
 
@@ -143,8 +145,8 @@ class EdoneWin(StandardWindow):
         panes2.part_content_set("left", self.tasks_list)
 
         ### the single task view ###
-        task_view = TaskView(panes2)
-        panes2.part_content_set("right", task_view)
+        self.task_view = TaskView(panes2)
+        panes2.part_content_set("right", self.task_view)
 
         # show the window
         self.resize(800, 600)
@@ -154,6 +156,9 @@ class EdoneWin(StandardWindow):
         load_from_file(options.txt_file)
         self.tasks_list.rebuild()
         self.filters.populate_lists()
+
+    def save(self):
+        save_to_file(options.txt_file)
 
 
 FILTER_STATUS_ALL = 0
@@ -224,6 +229,8 @@ class Filters(Box):
         self.top_widget.tasks_list.rebuild()
 
     def populate_lists(self):
+        self.cxts_list.clear()
+        self.projs_list.clear()
         contexts = []
         projects = []
         for t in TASKS:
@@ -246,11 +253,14 @@ class TasksList(Genlist):
                         text_get_func=self._gl_text_get,
                         content_get_func=self._gl_content_get)
         Genlist.__init__(self, parent, mode=ELM_LIST_COMPRESS, homogeneous=True)
+        self.callback_selected_add(self._item_selected_cb)
         self.show()
 
     def rebuild(self):
         LOG('rebuild tasks list (%d tasks)' % len(TASKS))
         self.clear()
+        self.top_widget.task_view.clear()
+
         filters = self.top_widget.filters
 
         for t in TASKS:
@@ -266,6 +276,13 @@ class TasksList(Genlist):
 
             if f1 and f2:
                 self.item_append(self.itc, t)
+
+    def update_selected(self):
+        if self.selected_item:
+            self.selected_item.update()
+
+    def _item_selected_cb(self, gl, item):
+        self.top_widget.task_view.update(item.data)
 
     def _gl_text_get(self, obj, part, task):
         print("TEXT_GET (%s) %s" % (part, task))
@@ -286,9 +303,25 @@ class TasksList(Genlist):
 
 class TaskView(Entry):
     def __init__(self, parent):
+        self.task = None
         Entry.__init__(self, parent, line_wrap=ELM_WRAP_MIXED, scrollable=True,
                        size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
-
-        self.text = "asdasdasd"
-
+        self.part_text_set('guide', 'Select a task to edit')
+        self.callback_changed_user_add(self._changed_user_cb)
         self.show()
+
+    def update(self, task=None):
+        if task is not None:
+            self.task = task
+        self.text = self.task.raw_txt
+
+    def clear(self):
+        self.task = None
+        self.text = None
+
+    def _changed_user_cb(self, en):
+        if self.task:
+            self.task.raw_txt = self.text
+            self.task.parse_from_raw()
+            self.top_widget.tasks_list.update_selected()
+
