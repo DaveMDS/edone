@@ -28,6 +28,7 @@ from efl.elementary.window import StandardWindow
 from efl.elementary.box import Box
 from efl.elementary.button import Button
 from efl.elementary.entry import Entry, ELM_WRAP_MIXED
+from efl.elementary.frame import Frame
 from efl.elementary.genlist import Genlist, GenlistItemClass, ELM_LIST_COMPRESS
 from efl.elementary.icon import Icon
 from efl.elementary.label import Label
@@ -43,8 +44,10 @@ from edone.tasks import TASKS, load_from_file, save_to_file
 
 EXPAND_BOTH = EVAS_HINT_EXPAND, EVAS_HINT_EXPAND
 EXPAND_HORIZ = EVAS_HINT_EXPAND, 0.0
+EXPAND_VERT = 0.0, EVAS_HINT_EXPAND
 FILL_BOTH = EVAS_HINT_FILL, EVAS_HINT_FILL
 FILL_HORIZ = EVAS_HINT_FILL, 0.5
+FILL_VERT = 0.5, EVAS_HINT_FILL
 
 
 def LOG(text):
@@ -94,7 +97,7 @@ class EdoneWin(StandardWindow):
         b = Button(hbox1, text="Add", disabled=True)
         hbox1.pack_end(b)
         b.show()
-        
+
         # title
         hbox2 = Box(table, horizontal=True, align=(0.0, 0.0),
                     size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
@@ -113,40 +116,44 @@ class EdoneWin(StandardWindow):
         
         search = Entry(hbox3, single_line=True, scrollable=True,
                        size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
-        search.part_text_set('guide', 'search')
+        search.part_text_set('guide', 'search (TODO)')
         search.content_set('end', Icon(search, standard='home', size_hint_min=(16,16)))
         hbox3.pack_end(search)
         search.show()
-
 
         sep = Separator(vbox, horizontal=True)
         vbox.pack_end(sep)
         sep.show()
 
-        ### Main content (left + right panes) ###
-        panes = Panes(vbox, content_left_size=0.25,
+        ### Main horizontal box ###
+        hbox = Box(vbox, horizontal=True,
+                   size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
+        vbox.pack_end(hbox)
+        hbox.show()
+
+        # the filters box widget (inside a padding frame)
+        self.filters = Filters(hbox)
+        fr = Frame(hbox, style='pad_medium', content=self.filters,
+                   size_hint_weight=EXPAND_VERT, size_hint_align=FILL_VERT)
+        hbox.pack_end(fr)
+        fr.show()
+
+        ### the main panes (horiz or vert)
+        panes = Panes(hbox, horizontal=not options.horiz_layout,
+                      content_left_min_relative_size=0.3,
+                      content_right_min_relative_size=0.1,
                       size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
-        vbox.pack_end(panes)
+        panes.content_left_size = 1.0
+        hbox.pack_end(panes)
         panes.show()
 
-        # the what-to-view options
-        self.filters = Filters(panes)
-        panes.part_content_set("left", self.filters)
-
-        ### the second panes (horiz or vert)
-        panes2 = Panes(panes, content_left_size=0.8,
-                       horizontal=not options.horiz_layout,
-                       size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
-        panes.part_content_set("right", panes2)
-        panes2.show()
-
         ### the tasks list ###
-        self.tasks_list = TasksList(panes2)
-        panes2.part_content_set("left", self.tasks_list)
+        self.tasks_list = TasksList(panes)
+        panes.part_content_set("left", self.tasks_list)
 
         ### the single task view ###
-        self.task_view = TaskView(panes2)
-        panes2.part_content_set("right", self.task_view)
+        self.task_view = TaskView(panes)
+        panes.part_content_set("right", self.task_view)
 
         # show the window
         self.resize(800, 600)
@@ -169,8 +176,10 @@ class Filters(Box):
     def __init__(self, parent):
         self.status = FILTER_STATUS_ALL
 
-        Box.__init__(self, parent, align=(0.5, 0.0))
+        Box.__init__(self, parent,
+                     size_hint_weight=EXPAND_VERT, size_hint_align=FILL_VERT)
 
+        # status
         seg = SegmentControl(self)
         it = seg.item_add(None, "All")
         it.data['status'] = FILTER_STATUS_ALL
@@ -184,7 +193,7 @@ class Filters(Box):
         seg.show()
 
         # @Projects list
-        label = Label(self, text="+Projects")
+        label = Label(self, text="<b>Projects +</b>", scale=1.4)
         self.pack_end(label)
         label.show()
 
@@ -197,7 +206,7 @@ class Filters(Box):
         self.projs_list.show()
         
         # @Contexts list
-        label = Label(self, text="@Contexts")
+        label = Label(self, text="<b>Contexts @</b>", scale=1.4)
         self.pack_end(label)
         label.show()
 

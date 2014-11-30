@@ -12,7 +12,7 @@ A GTD apptlication written in python-efl
 ## Requirements ##
 
 * Python 2.7 or higher
-* Python-EFL 1.8 or higher
+* Python-EFL 1.11 or higher
 * python modules: efl, xdg
 
 
