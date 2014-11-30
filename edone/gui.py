@@ -74,61 +74,46 @@ class EdoneWin(StandardWindow):
         vbox.show()
 
         ### Header ###
-        table = Table(vbox, size_hint_weight=EXPAND_HORIZ,
-                      size_hint_align=FILL_HORIZ)
-        vbox.pack_end(table)
-        table.show()
+        hbox1 = Box(vbox, horizontal=True)
+        fr = Frame(vbox, style='outdent_bottom', content=hbox1,
+                   size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
+        vbox.pack_end(fr)
+        fr.show()
 
         # buttons
-        hbox1 = Box(table, horizontal=True, align=(0.0, 0.0),
-                    size_hint_weight=EXPAND_HORIZ, size_hint_align=(0.0, 0.5))
-        table.pack(hbox1, 0, 0, 1, 1)
-        hbox1.show()
-
-        b = Button(hbox1, text="Save", content=Icon(hbox1, standard='document-save'))
+        b = Button(hbox1, text="Save")
+        b.content = Icon(hbox1, standard='document-save')
         b.callback_clicked_add(lambda b: self.save())
         hbox1.pack_end(b)
         b.show()
 
-        b = Button(hbox1, text="Reload", content=Icon(hbox1, standard='reload'))
+        b = Button(hbox1, text="Reload")
+        b.content = Icon(hbox1, standard='reload')
         b.callback_clicked_add(lambda b: self.reload())
         hbox1.pack_end(b)
         b.show()
 
-        b = Button(hbox1, text="Add", content=Icon(hbox1, standard='add'))
+        b = Button(hbox1, text="Add")
+        b.content = Icon(hbox1, standard='add')
         b.callback_clicked_add(lambda b: self.task_add())
         hbox1.pack_end(b)
         b.show()
 
         # title
-        hbox2 = Box(table, horizontal=True, align=(0.0, 0.0),
-                    size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
-        table.pack(hbox2, 1, 0, 1, 1)
-        hbox2.show()
-
-        title = Label(vbox, text="Getting Things Done", scale=2.5)
-        hbox2.pack_end(title)
+        title = Label(hbox1, text="Getting Things Done", scale=2.0,
+                      size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
+        hbox1.pack_end(title)
         title.show()
 
         # search entry
-        hbox3 = Box(table, horizontal=True, align=(1.0, 0.0),
-                    size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
-        table.pack(hbox3, 2, 0, 1, 1)
-        hbox3.show()
-        
-        en = Entry(hbox3, single_line=True, scrollable=True,
-                       size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
+        en = Entry(hbox1, single_line=True, scrollable=True,
+                   size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
         en.part_text_set('guide', 'search')
         en.callback_changed_user_add(self._search_changed_user_cb)
-        ic = Icon(en, standard='find', size_hint_min=(16,16))
-        en.content_set('end', ic)
-        hbox3.pack_end(en)
+        en.content_set('end', Icon(en, standard='find', size_hint_min=(20,20)))
+        hbox1.pack_end(en)
         en.show()
         self.search_entry = en
-
-        sep = Separator(vbox, horizontal=True)
-        vbox.pack_end(sep)
-        sep.show()
 
         ### Main horizontal box ###
         hbox = Box(vbox, horizontal=True,
