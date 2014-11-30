@@ -30,10 +30,13 @@ from edone.gui import EdoneWin
 
 def main():
 
-    # load config and create necessary folders
+    # load config and create necessary folders and files
     options.load()
     if not os.path.exists(config_path):
         os.makedirs(config_path)
+    if not os.path.exists(options.txt_file):
+        with open(options.txt_file, 'a') as f:
+            print('(A) Welcome to Etodo', file=f)
 
     # create the main window
     elm.init()

@@ -28,7 +28,6 @@ from xdg.BaseDirectory import xdg_config_home, xdg_cache_home
 script_path = os.path.dirname(__file__)
 config_path = os.path.join(xdg_config_home, 'edone')
 config_file = os.path.join(config_path, 'config.pickle')
-# recent_file = os.path.join(config_path, 'recent.history')
 
 
 class Options(object):
@@ -36,7 +35,7 @@ class Options(object):
     def __init__(self):
         self.theme_name = 'default'
         self.horiz_layout = False
-        self.txt_file = '/home/dave/Dropbox/Todo.txt'
+        self.txt_file = os.path.join(config_path, 'Todo.txt')
 
     def load(self):
         try:
