@@ -28,12 +28,15 @@ from efl.elementary.window import StandardWindow
 from efl.elementary.box import Box
 from efl.elementary.button import Button
 from efl.elementary.entry import Entry, ELM_WRAP_MIXED
+from efl.elementary.fileselector import Fileselector
 from efl.elementary.frame import Frame
 from efl.elementary.genlist import Genlist, GenlistItemClass, ELM_LIST_COMPRESS
 from efl.elementary.icon import Icon
 from efl.elementary.label import Label
 from efl.elementary.list import List
+from efl.elementary.menu import Menu
 from efl.elementary.panes import Panes
+from efl.elementary.popup import Popup
 from efl.elementary.table import Table
 from efl.elementary.segment_control import SegmentControl
 from efl.elementary.separator import Separator
@@ -62,6 +65,7 @@ class EdoneWin(StandardWindow):
         self.filters = None
         self.task_view = None
         self.search_entry = None
+        self.main_panes = None
 
         # the window
         StandardWindow.__init__(self, "edone", "Edone")
@@ -80,20 +84,14 @@ class EdoneWin(StandardWindow):
         vbox.pack_end(fr)
         fr.show()
 
-        # buttons
-        b = Button(hbox1, text="Save")
-        b.content = Icon(hbox1, standard='document-save')
-        b.callback_clicked_add(lambda b: self.save())
+        # menu button
+        b = Button(hbox1, text='Menu', content=Icon(hbox1, standard='home'))
+        b.callback_clicked_add(lambda bt: OptionsMenu(self, bt))
         hbox1.pack_end(b)
         b.show()
 
-        b = Button(hbox1, text="Reload")
-        b.content = Icon(hbox1, standard='reload')
-        b.callback_clicked_add(lambda b: self.reload())
-        hbox1.pack_end(b)
-        b.show()
-
-        b = Button(hbox1, text="Add")
+        # new task button
+        b = Button(hbox1, text='New Task')
         b.content = Icon(hbox1, standard='add')
         b.callback_clicked_add(lambda b: self.task_add())
         hbox1.pack_end(b)
@@ -136,6 +134,7 @@ class EdoneWin(StandardWindow):
         panes.content_left_size = 1.0
         hbox.pack_end(panes)
         panes.show()
+        self.main_panes = panes
 
         ### the tasks list ###
         self.tasks_list = TasksList(panes)
@@ -167,6 +166,66 @@ class EdoneWin(StandardWindow):
 
     def _search_changed_user_cb(self, en):
         self.tasks_list.rebuild()
+
+
+class OptionsMenu(Menu):
+    def __init__(self, parent, caller):
+        Menu.__init__(self, parent)
+
+        # main actions
+        self.item_add(None, 'Save', 'folder', lambda m,i: parent.save())
+        self.item_add(None, 'Reload', 'refresh', lambda m,i: parent.reload())
+        self.item_separator_add()
+
+        # layout
+        it_layout = self.item_add(None, 'Layout')
+        icon = 'arrow_right' if options.horiz_layout is False else None
+        self.item_add(it_layout, 'Vertical', icon,
+                      lambda m,i: self._layout_set(False))
+        icon = 'arrow_right' if options.horiz_layout is True else None
+        self.item_add(it_layout, 'Horizontal', icon,
+                      lambda m,i: self._layout_set(True))
+
+        # Todo.txt file...
+        self.item_add(None, 'Todo.txt file...', None,
+                      lambda m,i: self._file_change())
+
+        # show the menu
+        x, y, w, h = caller.geometry
+        self.move(x, y + h)
+        self.show()
+
+    def _layout_set(self, horiz):
+        options.horiz_layout = horiz
+        self.parent.main_panes.horizontal = not horiz
+
+    def _file_change(self):
+        # hack to make popup respect min_size
+        from efl.evas import Rectangle
+        rect = Rectangle(self.parent.evas, size_hint_min=(400,400))
+        tb = Table(self.parent)
+        tb.pack(rect, 0, 0, 1, 1)
+
+        # show the fileselector inside a popup
+        popup = Popup(self.parent, content=tb)
+        popup.part_text_set('title,text', 'Choose the Todo.txt file to use')
+        popup.show()
+
+        # the fileselector widget
+        fs = Fileselector(self.parent, is_save=False, expandable=False,
+                          selected=options.txt_file,
+                          size_hint_weight=EXPAND_BOTH,
+                          size_hint_align=FILL_BOTH)
+        fs.callback_activated_add(self._file_change_done, popup)
+        fs.callback_done_add(self._file_change_done, popup)
+        fs.show()
+        tb.pack(fs, 0, 0, 1, 1)
+
+    def _file_change_done(self, fs, new_path, popup):
+        if new_path is not None:
+            options.txt_file = new_path
+            self.parent.reload()
+        popup.delete()
 
 
 FILTER_STATUS_ALL = 0
