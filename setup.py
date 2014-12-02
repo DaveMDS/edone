@@ -17,8 +17,8 @@ setup(
     package_data = {
         'edone': ['themes/*/*'],
     },
+    scripts = ['bin/edone'],
     data_files = [
-        ('bin', ['bin/edone']),
         ('share/applications', ['data/edone.desktop']),
         ('share/icons', ['data/icons/256x256/edone.png']),
         ('share/icons/hicolor/256x256/apps', ['data/icons/256x256/edone.png']),
