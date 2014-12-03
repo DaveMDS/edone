@@ -36,6 +36,7 @@ class Options(object):
         self.theme_name = 'default'
         self.horiz_layout = False
         self.txt_file = os.path.join(config_path, 'Todo.txt')
+        self.group_by = 'none' # 'prj' or 'ctx'
 
     def load(self):
         try:

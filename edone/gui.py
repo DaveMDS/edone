@@ -30,7 +30,8 @@ from efl.elementary.button import Button
 from efl.elementary.entry import Entry, ELM_WRAP_MIXED
 from efl.elementary.fileselector import Fileselector
 from efl.elementary.frame import Frame
-from efl.elementary.genlist import Genlist, GenlistItemClass, ELM_LIST_COMPRESS
+from efl.elementary.genlist import Genlist, GenlistItemClass, \
+    ELM_LIST_COMPRESS, ELM_GENLIST_ITEM_GROUP
 from efl.elementary.icon import Icon
 from efl.elementary.label import Label
 from efl.elementary.list import List
@@ -177,6 +178,18 @@ class OptionsMenu(Menu):
         self.item_add(None, 'Reload', 'refresh', lambda m,i: parent.reload())
         self.item_separator_add()
 
+        # group by
+        it_groupby = self.item_add(None, 'Group by')
+        icon = 'arrow_right' if options.group_by == 'none' else None
+        self.item_add(it_groupby, 'None', icon,
+                      lambda m,i: self._groupby_set('none'))
+        icon = 'arrow_right' if options.group_by == 'prj' else None
+        self.item_add(it_groupby, 'Projects', icon,
+                      lambda m,i: self._groupby_set('prj'))
+        icon = 'arrow_right' if options.group_by == 'ctx' else None
+        self.item_add(it_groupby, 'Contexts', icon,
+                      lambda m,i: self._groupby_set('ctx'))
+
         # layout
         it_layout = self.item_add(None, 'Layout')
         icon = 'arrow_right' if options.horiz_layout is False else None
@@ -198,6 +211,10 @@ class OptionsMenu(Menu):
     def _layout_set(self, horiz):
         options.horiz_layout = horiz
         self.parent.main_panes.horizontal = not horiz
+
+    def _groupby_set(self, group):
+        options.group_by = group
+        self.parent.tasks_list.rebuild()
 
     def _file_change(self):
         # hack to make popup respect min_size
@@ -321,13 +338,17 @@ class TasksList(Genlist):
         self.itc = GenlistItemClass(item_style="default_style",
                         text_get_func=self._gl_text_get,
                         content_get_func=self._gl_content_get)
+        self.itcg = GenlistItemClass(item_style="group_index",
+                        text_get_func=self._gl_g_text_get)
         Genlist.__init__(self, parent, mode=ELM_LIST_COMPRESS, homogeneous=True)
         self.callback_selected_add(self._item_selected_cb)
         self.show()
+        self.groups = {} # key: group_name  data: genlist_group_item
 
     def rebuild(self):
         LOG('rebuild tasks list (%d tasks)' % len(TASKS))
         self.clear()
+        self.groups = {}
         self.top_widget.task_view.clear()
 
         filters = self.top_widget.filters
@@ -350,7 +371,34 @@ class TasksList(Genlist):
                     search.lower() in t.raw_txt.lower()
 
             if f1 and f2 and f3:
-                self.item_append(self.itc, t)
+                self.item_add(t)
+
+    def item_add(self, t):
+        # no grouping
+        if options.group_by == 'none':
+            self.item_append(self.itc, t)
+        # group by projects
+        elif options.group_by == 'prj':
+            if len(t.projects) > 0:
+                for p in t.projects:
+                    self.item_add_to_group(t, '+'+p)
+            else:
+                self.item_add_to_group(t, '+')
+        # group by contexts
+        elif options.group_by == 'ctx':
+            if len(t.contexts) > 0:
+                for c in t.contexts:
+                    self.item_add_to_group(t, '@'+c)
+            else:
+                self.item_add_to_group(t, '@')
+
+    def item_add_to_group(self, t, group_name):
+        if not group_name in self.groups:
+            # create the group item
+            self.groups[group_name] = self.item_append(self.itcg, group_name,
+                                                  flags=ELM_GENLIST_ITEM_GROUP)
+        # add in the correct group
+        self.item_append(self.itc, t, self.groups[group_name])
 
     def update_selected(self):
         if self.selected_item:
@@ -358,6 +406,11 @@ class TasksList(Genlist):
 
     def _item_selected_cb(self, gl, item):
         self.top_widget.task_view.update(item.data)
+
+    def _gl_g_text_get(self, obj, part, group_name):
+        if group_name == '+': return 'Tasks without any projects'
+        if group_name == '@': return 'Tasks without any contexts'
+        return group_name
 
     def _gl_text_get(self, obj, part, task):
         print("TEXT_GET (%s) %s" % (part, task))

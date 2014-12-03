@@ -13,7 +13,7 @@ A GTD apptlication written in python-efl
 * Click on Menu should close the menu (if yet opened)
 * Reload side lists when edited done
 * Order by priority
-* Group by tags
+* ~~Group by tags~~
 * Start/Due dates
 * Tags colors
 * GUI way to edit tasks properties (todo/done, prio, dates)
