@@ -8,6 +8,14 @@ A GTD apptlication written in python-efl
 
 * Todo.txt compatible
 
+## Todo ##
+* Fix fileselector when selected file not esists
+* Click on Menu should close the menu (if yet opened)
+* Reload side lists when edited done
+* Start/Due dates
+* GUI way to edit tasks properties (todo/done, prio, dates)
+* Notes for tasks
+* Attachments for tasks
 
 ## Requirements ##
 
