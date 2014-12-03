@@ -14,8 +14,11 @@ A GTD apptlication written in python-efl
 * Reload side lists when edited done
 * Start/Due dates
 * GUI way to edit tasks properties (todo/done, prio, dates)
+* Edit tasks inplace? genlist decorated mode
+* DND tags-on-tasks and tasks-on-tags
 * Notes for tasks
 * Attachments for tasks
+* Task completion progress
 
 ## Requirements ##
 
