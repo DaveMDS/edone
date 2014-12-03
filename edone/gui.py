@@ -23,10 +23,11 @@ from __future__ import absolute_import, print_function
 import os
 
 from efl import elementary as elm
-from efl.evas import EVAS_HINT_EXPAND, EVAS_HINT_FILL
+from efl.evas import Rectangle, EVAS_HINT_EXPAND, EVAS_HINT_FILL
 from efl.elementary.window import StandardWindow
 from efl.elementary.box import Box
 from efl.elementary.button import Button
+from efl.elementary.colorselector import Colorselector
 from efl.elementary.entry import Entry, ELM_WRAP_MIXED
 from efl.elementary.fileselector import Fileselector
 from efl.elementary.frame import Frame
@@ -218,7 +219,6 @@ class OptionsMenu(Menu):
 
     def _file_change(self):
         # hack to make popup respect min_size
-        from efl.evas import Rectangle
         rect = Rectangle(self.parent.evas, size_hint_min=(400,400))
         tb = Table(self.parent)
         tb.pack(rect, 0, 0, 1, 1)
@@ -324,13 +324,58 @@ class Filters(Box):
             projects.extend(t.projects)
 
         for c in sorted(set(contexts)):
-            self.cxts_list.item_append('@' + c)
+            name = '@' + c
+            color = options.tag_colors.get(name, options.def_ctx_color)
+            rect = ColorRect(self, color, name)
+            it = self.cxts_list.item_append(name)
+            it.part_content_set('start', rect)
         self.cxts_list.go()
 
         for p in sorted(set(projects)):
-            self.projs_list.item_append('+' + p)
+            name = '+' + p
+            color = options.tag_colors.get(name, options.def_prj_color)
+            rect = ColorRect(self, color, name)
+            it = self.projs_list.item_append(name)
+            it.part_content_set('start', rect)
         self.projs_list.go()
 
+
+class ColorRect(Rectangle):
+    def __init__(self, parent, color, tag_name):
+        self.parent_widget = parent
+        self.tag_name = tag_name
+        Rectangle.__init__(self, parent.evas, color=color,
+                           propagate_events=False)
+        self.on_mouse_down_add(lambda o,i: self._popup_build())
+
+    def _popup_build(self):
+        popup = Popup(self.parent_widget.top_widget)
+        popup.part_text_set('title,text',
+                            'Choose the color for %s' % self.tag_name)
+        popup.callback_block_clicked_add(lambda p: popup.delete())
+
+        cs = Colorselector(popup, color=self.color)
+        cs.callback_changed_add(lambda s: setattr(rect, 'color', cs.color))
+        popup.content = cs
+
+        rect = Rectangle(popup.evas, color=self.color)
+        frame = Frame(popup, style='pad_small', content=rect)
+        popup.part_content_set('button1', frame)
+
+        bt = Button(popup, text='Accept')
+        bt.callback_clicked_add(self._popup_accept_cb, popup, cs)
+        popup.part_content_set('button2', bt)
+
+        bt = Button(popup, text='Cancel')
+        bt.callback_clicked_add(lambda b: popup.delete())
+        popup.part_content_set('button3', bt)
+
+        popup.show()
+
+    def _popup_accept_cb(self, obj, popup, colorselector):
+        self.color = colorselector.color
+        options.tag_colors[self.tag_name] = self.color
+        popup.delete()
 
 
 class TasksList(Genlist):

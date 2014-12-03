@@ -37,6 +37,9 @@ class Options(object):
         self.horiz_layout = False
         self.txt_file = os.path.join(config_path, 'Todo.txt')
         self.group_by = 'none' # 'prj' or 'ctx'
+        self.tag_colors = {} # key: tag_name  data: color_tuple
+        self.def_prj_color = (0, 0, 255, 255)
+        self.def_ctx_color = (255, 0, 0, 255)
 
     def load(self):
         try:
