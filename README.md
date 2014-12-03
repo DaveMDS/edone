@@ -15,7 +15,7 @@ A GTD apptlication written in python-efl
 * Order by priority
 * ~~Group by tags~~
 * Start/Due dates
-* Tags colors
+* ~~Tags colors~~
 * GUI way to edit tasks properties (todo/done, prio, dates)
 * Edit tasks inplace? genlist decorated mode
 * DND tags-on-tasks and tasks-on-tags

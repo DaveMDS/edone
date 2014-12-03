@@ -162,7 +162,10 @@ class EdoneWin(StandardWindow):
         t = Task('New item')
         TASKS.insert(0, t)
         self.tasks_list.rebuild()
-        self.tasks_list.first_item.selected = True
+        first_item = self.tasks_list.first_item
+        if first_item.item_class.item_style == 'group_index':
+            first_item = first_item.next
+        first_item.selected = True
         self.task_view.focus = True
         self.task_view.select_all()
 
