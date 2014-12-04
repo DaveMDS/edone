@@ -358,25 +358,25 @@ class Filters(Box):
         self.projs_list.go()
 
 
-class ColorRect(Rectangle):
+class ColorRect(Frame):
     def __init__(self, parent, color, tag_name):
-        self.parent_widget = parent
-        self.tag_name = tag_name
-        Rectangle.__init__(self, parent.evas, color=color,
-                           propagate_events=False)
-        self.on_mouse_down_add(lambda o,i: self._popup_build())
+        Frame.__init__(self, parent, style='pad_small', propagate_events=False)
+        self._rect = Rectangle(self.evas, color=color)
+        self._rect.on_mouse_down_add(lambda o,i: self._popup_build())
+        self.content = self._rect
+        self._tag_name = tag_name
 
     def _popup_build(self):
-        popup = Popup(self.parent_widget.top_widget)
+        popup = Popup(self.top_widget)
         popup.part_text_set('title,text',
-                            'Choose the color for %s' % self.tag_name)
+                            'Choose the color for %s' % self._tag_name)
         popup.callback_block_clicked_add(lambda p: popup.delete())
 
-        cs = Colorselector(popup, color=self.color)
+        cs = Colorselector(popup, color=self._rect.color)
         cs.callback_changed_add(lambda s: setattr(rect, 'color', cs.color))
         popup.content = cs
 
-        rect = Rectangle(popup.evas, color=self.color)
+        rect = Rectangle(popup.evas, color=self._rect.color)
         frame = Frame(popup, style='pad_small', content=rect)
         popup.part_content_set('button1', frame)
 
@@ -391,8 +391,8 @@ class ColorRect(Rectangle):
         popup.show()
 
     def _popup_accept_cb(self, obj, popup, colorselector):
-        self.color = colorselector.color
-        options.tag_colors[self.tag_name] = self.color
+        self._rect.color = colorselector.color
+        options.tag_colors[self._tag_name] = self._rect.color
         popup.delete()
 
 
