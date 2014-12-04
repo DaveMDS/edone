@@ -162,12 +162,9 @@ class EdoneWin(StandardWindow):
 
     def task_add(self):
         t = Task('New item')
-        TASKS.insert(0, t)
-        self.tasks_list.rebuild()
-        first_item = self.tasks_list.first_item
-        if first_item.item_class.item_style == 'group_index':
-            first_item = first_item.next
-        first_item.selected = True
+        TASKS.append(t)
+        it = self.tasks_list.item_add(t)
+        it.selected = True
         self.task_view.focus = True
         self.task_view.select_all()
 
@@ -461,21 +458,22 @@ class TasksList(Genlist):
     def item_add(self, t):
         # no grouping
         if options.group_by == 'none':
-            self.item_append(self.itc, t)
+            it = self.item_append(self.itc, t)
         # group by projects
         elif options.group_by == 'prj':
             if len(t.projects) > 0:
                 for p in t.projects:
-                    self.item_add_to_group(t, '+'+p)
+                    it = self.item_add_to_group(t, '+'+p)
             else:
-                self.item_add_to_group(t, '+')
+                it = self.item_add_to_group(t, '+')
         # group by contexts
         elif options.group_by == 'ctx':
             if len(t.contexts) > 0:
                 for c in t.contexts:
-                    self.item_add_to_group(t, '@'+c)
+                    it = self.item_add_to_group(t, '@'+c)
             else:
-                self.item_add_to_group(t, '@')
+                it = self.item_add_to_group(t, '@')
+        return it
 
     def item_add_to_group(self, t, group_name):
         if not group_name in self.groups:
@@ -483,7 +481,7 @@ class TasksList(Genlist):
             self.groups[group_name] = self.item_append(self.itcg, group_name,
                                                   flags=ELM_GENLIST_ITEM_GROUP)
         # add in the correct group
-        self.item_append(self.itc, t, self.groups[group_name])
+        return self.item_append(self.itc, t, self.groups[group_name])
 
     def update_selected(self):
         if self.selected_item:
