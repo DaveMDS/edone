@@ -62,3 +62,10 @@ options = Options()
 
 def theme_resource_get(fname):
     return os.path.join(script_path, 'themes', options.theme_name, fname)
+
+
+def tag_color_get(tag, hex=False):
+    color = options.tag_colors.get(tag, options.def_prj_color if tag[0] == '+' \
+                                        else options.def_ctx_color)
+    return ('#%02x%02x%02x%02x' % color) if hex else color
+    

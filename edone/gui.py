@@ -43,7 +43,7 @@ from efl.elementary.table import Table
 from efl.elementary.segment_control import SegmentControl
 from efl.elementary.separator import Separator
 
-from edone.utils import options, theme_resource_get
+from edone.utils import options, theme_resource_get, tag_color_get
 from edone.tasks import Task, TASKS, load_from_file, save_to_file
 
 
@@ -53,6 +53,8 @@ EXPAND_VERT = 0.0, EVAS_HINT_EXPAND
 FILL_BOTH = EVAS_HINT_FILL, EVAS_HINT_FILL
 FILL_HORIZ = EVAS_HINT_FILL, 0.5
 FILL_VERT = 0.5, EVAS_HINT_FILL
+
+DONE_FONT = 'color=#AAA strikethrough=on strikethrough_color=#222'
 
 
 def LOG(text):
@@ -476,14 +478,23 @@ class TasksList(Genlist):
         return group_name
 
     def _gl_text_get(self, obj, part, task):
-        print("TEXT_GET (%s) %s" % (part, task))
+        # apply tag colors
+        words = []
+        for word in task.text.split():
+            if word.startswith(('@', '+')) and len(word) > 1:
+                words.append('<font font_weight=bold color=%s>%s</font>' %
+                             (tag_color_get(word, hex=True), word))
+            else:
+                words.append(word)
+        formatted = ' '.join(words)
+
+        # strikethrough todo tasks
         if task.completed:
-            return '<font color=#AAA strikethrough=on strikethrough_color=#222>' + task.text + '</font>'
+            return '<font %s>%s</font>' % (DONE_FONT, formatted)
         else:
-            return task.text
+            return formatted
 
     def _gl_content_get(self, obj, part, task):
-        print("CONTENT_GET (%s)" % part)
         if task.priority is None:
             return None
         if part == 'elm.swallow.icon':
