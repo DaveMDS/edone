@@ -21,7 +21,8 @@
 from __future__ import absolute_import, print_function
 
 import os
-
+from operator import attrgetter
+        
 from efl import elementary as elm
 from efl.evas import Rectangle, EVAS_HINT_EXPAND, EVAS_HINT_FILL
 from efl.elementary.window import StandardWindow
@@ -211,6 +212,15 @@ class OptionsMenu(Button):
         m.item_add(it_groupby, 'Contexts', icon,
                    lambda m,i: self._groupby_set('ctx'))
 
+        # sort by >
+        it_sortby = m.item_add(None, 'Sort by')
+        icon = 'arrow_right' if options.sort_by == 'none' else None
+        m.item_add(it_sortby, 'No sort', icon,
+                   lambda m,i: self._sortby_set('none'))
+        icon = 'arrow_right' if options.sort_by == 'pri' else None
+        m.item_add(it_sortby, 'Priority', icon,
+                   lambda m,i: self._sortby_set('pri'))
+
         # layout >
         it_layout = m.item_add(None, 'Layout')
         icon = 'arrow_right' if options.horiz_layout is False else None
@@ -235,6 +245,10 @@ class OptionsMenu(Button):
 
     def _groupby_set(self, group):
         options.group_by = group
+        self.top_widget.tasks_list.rebuild()
+
+    def _sortby_set(self, sort):
+        options.sort_by = sort
         self.top_widget.tasks_list.rebuild()
 
     def _file_change(self):
@@ -421,7 +435,13 @@ class TasksList(Genlist):
         prj_set = filters.project_filter
         search = self.top_widget.search_entry.text
 
-        for t in TASKS:
+
+        if options.sort_by == 'pri':
+            sort_key = attrgetter('raw_txt')
+        else:
+            sort_key = None
+
+        for t in sorted(TASKS, key=sort_key):
             if (filters.status == FILTER_STATUS_DONE and not t.completed) or \
                (filters.status == FILTER_STATUS_TODO and t.completed):
                 continue

@@ -12,7 +12,7 @@ A GTD (todo) application written in python-efl
 * Fix fileselector when selected file not esists
 * ~~Click on Menu should close the menu (if yet opened)~~
 * Reload side lists when edited done
-* Order by priority
+* ~~Sort by priority~~
 * ~~Group by tags~~
 * Start/Due dates
 * ~~Tags colors~~
