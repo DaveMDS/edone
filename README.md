@@ -2,7 +2,7 @@
 Edone
 =====
 
-A GTD apptlication written in python-efl
+A GTD (todo) application written in python-efl
 
 ## Features ##
 
@@ -10,7 +10,7 @@ A GTD apptlication written in python-efl
 
 ## Todo ##
 * Fix fileselector when selected file not esists
-* Click on Menu should close the menu (if yet opened)
+* ~~Click on Menu should close the menu (if yet opened)~~
 * Reload side lists when edited done
 * Order by priority
 * ~~Group by tags~~

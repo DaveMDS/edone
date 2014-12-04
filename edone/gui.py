@@ -87,10 +87,9 @@ class EdoneWin(StandardWindow):
         fr.show()
 
         # menu button
-        b = Button(hbox1, text='Menu', content=Icon(hbox1, standard='home'))
-        b.callback_clicked_add(lambda bt: OptionsMenu(self, bt))
-        hbox1.pack_end(b)
-        b.show()
+        m = OptionsMenu(hbox1)
+        hbox1.pack_end(m)
+        m.show()
 
         # new task button
         b = Button(hbox1, text='New Task')
@@ -173,52 +172,68 @@ class EdoneWin(StandardWindow):
         self.tasks_list.rebuild()
 
 
-class OptionsMenu(Menu):
-    def __init__(self, parent, caller):
-        Menu.__init__(self, parent)
+class OptionsMenu(Button):
+    def __init__(self, parent):
+        self._menu = None
+        Button.__init__(self, parent, text='Menu',
+                        content=Icon(parent, standard='home'))
+        self.callback_pressed_add(self._button_pressed_cb)
+
+    def _button_pressed_cb(self, btn):
+        # close the menu if it is visible yet
+        if self._menu and self._menu.visible:
+            self._menu.delete()
+            self._menu = None
+            return
+
+        # build a new menu
+        m = Menu(self.top_widget)
+        self._menu = m
 
         # main actions
-        self.item_add(None, 'Save', 'folder', lambda m,i: parent.save())
-        self.item_add(None, 'Reload', 'refresh', lambda m,i: parent.reload())
-        self.item_separator_add()
+        m.item_add(None, 'Save', 'folder',
+                   lambda m,i: self.top_widget.save())
+        m.item_add(None, 'Reload', 'refresh',
+                   lambda m,i: self.top_widget.reload())
+        m.item_separator_add()
 
-        # group by
-        it_groupby = self.item_add(None, 'Group by')
+        # group by >
+        it_groupby = m.item_add(None, 'Group by')
         icon = 'arrow_right' if options.group_by == 'none' else None
-        self.item_add(it_groupby, 'None', icon,
-                      lambda m,i: self._groupby_set('none'))
+        m.item_add(it_groupby, 'None', icon,
+                   lambda m,i: self._groupby_set('none'))
         icon = 'arrow_right' if options.group_by == 'prj' else None
-        self.item_add(it_groupby, 'Projects', icon,
-                      lambda m,i: self._groupby_set('prj'))
+        m.item_add(it_groupby, 'Projects', icon,
+                   lambda m,i: self._groupby_set('prj'))
         icon = 'arrow_right' if options.group_by == 'ctx' else None
-        self.item_add(it_groupby, 'Contexts', icon,
-                      lambda m,i: self._groupby_set('ctx'))
+        m.item_add(it_groupby, 'Contexts', icon,
+                   lambda m,i: self._groupby_set('ctx'))
 
-        # layout
-        it_layout = self.item_add(None, 'Layout')
+        # layout >
+        it_layout = m.item_add(None, 'Layout')
         icon = 'arrow_right' if options.horiz_layout is False else None
-        self.item_add(it_layout, 'Vertical', icon,
-                      lambda m,i: self._layout_set(False))
+        m.item_add(it_layout, 'Vertical', icon,
+                   lambda m,i: self._layout_set(False))
         icon = 'arrow_right' if options.horiz_layout is True else None
-        self.item_add(it_layout, 'Horizontal', icon,
-                      lambda m,i: self._layout_set(True))
+        m.item_add(it_layout, 'Horizontal', icon,
+                   lambda m,i: self._layout_set(True))
 
         # Todo.txt file...
-        self.item_add(None, 'Todo.txt file...', None,
-                      lambda m,i: self._file_change())
+        m.item_add(None, 'Todo.txt file...', None,
+                   lambda m,i: self._file_change())
 
         # show the menu
-        x, y, w, h = caller.geometry
-        self.move(x, y + h)
-        self.show()
+        x, y, w, h = self.geometry
+        m.move(x, y + h)
+        m.show()
 
     def _layout_set(self, horiz):
         options.horiz_layout = horiz
-        self.parent.main_panes.horizontal = not horiz
+        self.top_widget.main_panes.horizontal = not horiz
 
     def _groupby_set(self, group):
         options.group_by = group
-        self.parent.tasks_list.rebuild()
+        self.top_widget.tasks_list.rebuild()
 
     def _file_change(self):
         # hack to make popup respect min_size
@@ -227,12 +242,12 @@ class OptionsMenu(Menu):
         tb.pack(rect, 0, 0, 1, 1)
 
         # show the fileselector inside a popup
-        popup = Popup(self.parent, content=tb)
+        popup = Popup(self.top_widget, content=tb)
         popup.part_text_set('title,text', 'Choose the Todo.txt file to use')
         popup.show()
 
         # the fileselector widget
-        fs = Fileselector(self.parent, is_save=False, expandable=False,
+        fs = Fileselector(popup, is_save=False, expandable=False,
                           selected=options.txt_file,
                           size_hint_weight=EXPAND_BOTH,
                           size_hint_align=FILL_BOTH)
@@ -244,7 +259,7 @@ class OptionsMenu(Menu):
     def _file_change_done(self, fs, new_path, popup):
         if new_path is not None:
             options.txt_file = new_path
-            self.parent.reload()
+            self.top_widget.reload()
         popup.delete()
 
 
