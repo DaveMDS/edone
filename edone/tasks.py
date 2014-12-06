@@ -40,6 +40,7 @@ class Task(object):
         self.creation_date = '2014-12-30'
         self.completion_date = '2014-12-31'
 
+        self.progress = None
         # self.notes = None # note:
         # self.files = []   # files:
 
@@ -87,8 +88,19 @@ class Task(object):
             self.completion_date = None
 
         # contexts & projects lists
-        self.contexts = [ x[1:] for x in txt.split() if x[0] == '@' and len(x) > 1 ]
-        self.projects = [ x[1:] for x in txt.split() if x[0] == '+' and len(x) > 1 ]
+        words = txt.split()
+        self.contexts = [ x[1:] for x in words if x[0] == '@' and len(x) > 1 ]
+        self.projects = [ x[1:] for x in words if x[0] == '+' and len(x) > 1 ]
+
+        # custom attributes
+        self.progress = None
+        for x in words:
+            # completion progress
+            if x.startswith('PROG:'):
+                try:
+                    self.progress = int(x.split(':')[1])
+                    txt = txt.replace(x, '')
+                except: pass
 
         self.text = txt
 
@@ -109,8 +121,13 @@ class Task(object):
         if self.creation_date:
             self.raw_txt += '%s ' % self.creation_date.strftime('%Y-%m-%d')
 
-        # text
+        # clean text
         self.raw_txt += self.text
+
+        # completion progress
+        if self.progress is not None:
+            self.raw_txt += ' PROG:%d' % self.progress
+
 
 def load_from_file(path):
     print('Loading tasks from file: "%s"' % path)

@@ -40,6 +40,7 @@ from efl.elementary.list import List
 from efl.elementary.menu import Menu
 from efl.elementary.panes import Panes
 from efl.elementary.popup import Popup
+from efl.elementary.progressbar import Progressbar
 from efl.elementary.table import Table
 from efl.elementary.segment_control import SegmentControl
 from efl.elementary.separator import Separator
@@ -520,12 +521,13 @@ class TasksList(Genlist):
             return formatted
 
     def _gl_content_get(self, obj, part, task):
-        if task.priority is None:
-            return None
-        if part == 'elm.swallow.icon':
+        if part == 'elm.swallow.icon' and task.priority is not None:
             fname = task.priority + '.png'
             return Icon(self, file=theme_resource_get(fname))
-        return None
+
+        if part == 'elm.swallow.end' and task.progress is not None:
+            return Progressbar(self, span_size=100,
+                               value=float(task.progress) / 100)
 
 
 class TaskPropsMenu(Menu):
@@ -547,6 +549,15 @@ class TaskPropsMenu(Menu):
             icon = 'arrow_right' if task.priority == p else None
             self.item_add(it_prio, p, icon, self._priority_cb)
 
+        # completion progress
+        it_prog = self.item_add(None, 'Progress')
+        for p in range(0, 101, 10):
+            if task.progress is not None and p <= task.progress < p + 10:
+                icon = 'arrow_right'
+            else:
+                icon = None
+            self.item_add(it_prog, '%d %%' % p, icon, self._progress_cb)
+
         # show the menu at mouse position
         x, y = self.evas.pointer_canvas_xy_get()
         self.move(x + 2, y)
@@ -561,7 +572,14 @@ class TaskPropsMenu(Menu):
         self._task.priority = item.text
         self._task.raw_from_props()
         self.top_widget.tasks_list.update_selected()
-        
+
+    def _progress_cb(self, m, item):
+        val = int(item.text[:-2])
+        self._task.progress = val
+        self._task.completed = True if val == 100 else False
+        self._task.raw_from_props()
+        self.top_widget.tasks_list.update_selected()
+
 
 class TaskView(Entry):
     def __init__(self, parent):

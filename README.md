@@ -6,7 +6,7 @@ A GTD (todo) application written in python-efl
 
 ## Features ##
 
-* Todo.txt compatible
+* Todo.txt compliant
 
 ## Todo ##
 * ~~Fix fileselector when selected file not esists~~
@@ -21,7 +21,7 @@ A GTD (todo) application written in python-efl
 * DND tags-on-tasks and tasks-on-tags
 * Notes for tasks
 * Attachments for tasks
-* Task completion progress
+* ~~Task completion progress~~
 
 ## Requirements ##
 
