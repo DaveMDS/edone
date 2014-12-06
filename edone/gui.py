@@ -261,11 +261,13 @@ class OptionsMenu(Button):
 
         # the fileselector widget
         fs = Fileselector(popup, is_save=False, expandable=False,
-                          selected=options.txt_file,
-                          size_hint_weight=EXPAND_BOTH,
-                          size_hint_align=FILL_BOTH)
+                        size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
         fs.callback_activated_add(self._file_change_done, popup)
         fs.callback_done_add(self._file_change_done, popup)
+        try:
+            fs.selected = options.txt_file
+        except:
+            fs.path = os.path.expanduser('~')
         fs.show()
         tb.pack(fs, 0, 0, 1, 1)
 

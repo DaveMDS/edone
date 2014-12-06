@@ -9,7 +9,7 @@ A GTD (todo) application written in python-efl
 * Todo.txt compatible
 
 ## Todo ##
-* Fix fileselector when selected file not esists
+* ~~Fix fileselector when selected file not esists~~
 * ~~Click on Menu should close the menu (if yet opened)~~
 * Reload side lists when edited done
 * ~~Sort by priority~~
