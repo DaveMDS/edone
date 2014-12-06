@@ -92,6 +92,25 @@ class Task(object):
 
         self.text = txt
 
+    def raw_from_props(self):
+        self.raw_txt = ''
+
+        # completed
+        if self.completed:
+            self.raw_txt += 'x '
+
+        # priority
+        if self.priority:
+            self.raw_txt += '(%s) ' % self.priority
+
+        # dates
+        if self.completion_date:
+            self.raw_txt += '%s ' % self.completion_date.strftime('%Y-%m-%d')
+        if self.creation_date:
+            self.raw_txt += '%s ' % self.creation_date.strftime('%Y-%m-%d')
+
+        # text
+        self.raw_txt += self.text
 
 def load_from_file(path):
     print('Loading tasks from file: "%s"' % path)

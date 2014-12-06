@@ -420,6 +420,8 @@ class TasksList(Genlist):
                         text_get_func=self._gl_g_text_get)
         Genlist.__init__(self, parent, mode=ELM_LIST_COMPRESS, homogeneous=True)
         self.callback_selected_add(self._item_selected_cb)
+        self.callback_longpressed_add(self._item_longpressed_cb)
+        self.callback_clicked_double_add(self._item_longpressed_cb)
         self.show()
         self.groups = {} # key: group_name  data: genlist_group_item
 
@@ -492,6 +494,9 @@ class TasksList(Genlist):
     def _item_selected_cb(self, gl, item):
         self.top_widget.task_view.update(item.data)
 
+    def _item_longpressed_cb(self, gl, item):
+        TaskPropsMenu(gl, item.data)
+
     def _gl_g_text_get(self, obj, part, group_name):
         if group_name == '+': return 'Tasks without any projects'
         if group_name == '@': return 'Tasks without any contexts'
@@ -522,6 +527,41 @@ class TasksList(Genlist):
             return Icon(self, file=theme_resource_get(fname))
         return None
 
+
+class TaskPropsMenu(Menu):
+    def __init__(self, parent, task):
+        self._task = task
+        Menu.__init__(self, parent)
+
+        # done/todo
+        if task.completed:
+            self.item_add(None, 'Mark as Todo', None,
+                          lambda m,i: self._completed_set(False))
+        else:
+            self.item_add(None, 'Mark as Done', None,
+                          lambda m,i: self._completed_set(True))
+
+        # priority
+        it_prio = self.item_add(None, 'Priority')
+        for p in ('A', 'B', 'C', 'D', 'E'):
+            icon = 'arrow_right' if task.priority == p else None
+            self.item_add(it_prio, p, icon, self._priority_cb)
+
+        # show the menu at mouse position
+        x, y = self.evas.pointer_canvas_xy_get()
+        self.move(x + 2, y)
+        self.show()
+
+    def _completed_set(self, completed):
+        self._task.completed = completed
+        self._task.raw_from_props()
+        self.top_widget.tasks_list.update_selected()
+
+    def _priority_cb(self, m, item):
+        self._task.priority = item.text
+        self._task.raw_from_props()
+        self.top_widget.tasks_list.update_selected()
+        
 
 class TaskView(Entry):
     def __init__(self, parent):
