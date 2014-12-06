@@ -155,8 +155,8 @@ class EdoneWin(StandardWindow):
 
     def reload(self):
         load_from_file(options.txt_file)
-        self.tasks_list.rebuild()
         self.filters.populate_lists()
+        self.tasks_list.rebuild()
 
     def save(self):
         save_to_file(options.txt_file)
@@ -340,7 +340,15 @@ class Filters(Box):
     def project_filter(self):
         L = [ item.text[1:] for item in  self.projs_list.selected_items ]
         return set(L) if L else None
-    
+
+    @property
+    def all_contexts(self):
+        return [ item.text for item in self.cxts_list.items ]
+
+    @property
+    def all_projects(self):
+        return [ item.text for item in self.projs_list.items ]
+
     def _status_changed_cb(self, seg, item):
         self.status = item.data['status']
         self.top_widget.tasks_list.rebuild()
@@ -437,6 +445,15 @@ class TasksList(Genlist):
         prj_set = filters.project_filter
         search = self.top_widget.search_entry.text
 
+        # first add all the group items (if grouping enable)
+        if options.group_by == 'prj':
+            for group_name in filters.all_projects + ['+']:
+                self.groups[group_name] = self.item_append(self.itcg,
+                                    group_name, flags=ELM_GENLIST_ITEM_GROUP)
+        elif options.group_by == 'ctx':
+            for group_name in filters.all_contexts + ['@']:
+                self.groups[group_name] = self.item_append(self.itcg,
+                                    group_name, flags=ELM_GENLIST_ITEM_GROUP)
 
         if options.sort_by == 'pri':
             sort_key = attrgetter('raw_txt')
@@ -460,33 +477,31 @@ class TasksList(Genlist):
             if f1 and f2 and f3:
                 self.item_add(t)
 
+        # and finally delete empty group items
+        for name, item in self.groups.iteritems():
+            # TODO this should be: item.subitems_count()... but it does not work
+            if len(item.subitems_get()) == 0:
+                item.delete()
+
     def item_add(self, t):
-        # no grouping
+        # no grouping (just append the item)
         if options.group_by == 'none':
             it = self.item_append(self.itc, t)
-        # group by projects
+        # group by projects (append in every projects)
         elif options.group_by == 'prj':
             if len(t.projects) > 0:
                 for p in t.projects:
-                    it = self.item_add_to_group(t, '+'+p)
+                    it = self.item_append(self.itc, t, self.groups['+'+p])
             else:
-                it = self.item_add_to_group(t, '+')
-        # group by contexts
+                it = self.item_append(self.itc, t, self.groups['+'])
+        # group by contexts (append in every contexts)
         elif options.group_by == 'ctx':
             if len(t.contexts) > 0:
                 for c in t.contexts:
-                    it = self.item_add_to_group(t, '@'+c)
+                    it = self.item_append(self.itc, t, self.groups['@'+c])
             else:
-                it = self.item_add_to_group(t, '@')
+                it = self.item_append(self.itc, t, self.groups['@'])
         return it
-
-    def item_add_to_group(self, t, group_name):
-        if not group_name in self.groups:
-            # create the group item
-            self.groups[group_name] = self.item_append(self.itcg, group_name,
-                                                  flags=ELM_GENLIST_ITEM_GROUP)
-        # add in the correct group
-        return self.item_append(self.itc, t, self.groups[group_name])
 
     def update_selected(self):
         if self.selected_item:
