@@ -588,6 +588,10 @@ class TaskPropsMenu(Menu):
                 icon = None
             self.item_add(it_prog, '%d %%' % p, icon, self._progress_cb)
 
+        # delete task
+        self.item_separator_add()
+        self.item_add(None, 'Delete task', None, self._confirm_delete)
+
         # show the menu at mouse position
         x, y = self.evas.pointer_canvas_xy_get()
         self.move(x + 2, y)
@@ -606,6 +610,25 @@ class TaskPropsMenu(Menu):
         self._task.progress = val
         self._task.completed = True if val == 100 else False
         self.top_widget.tasks_list.update_selected()
+
+    def _confirm_delete(self, m, item):
+        pp = Popup(self.parent, text=self._task.text)
+        pp.part_text_set('title,text', 'Confirm task deletion?')
+
+        btn = Button(pp, text='Cancel')
+        btn.callback_clicked_add(lambda b: pp.delete())
+        pp.part_content_set('button1', btn)
+
+        btn = Button(pp, text='Delete Task')
+        btn.callback_clicked_add(self._delete_confirmed, pp)
+        pp.part_content_set('button2', btn)
+
+        pp.show()
+
+    def _delete_confirmed(self, b, popup):
+        popup.delete()
+        self._task.delete()
+        self.top_widget.tasks_list.rebuild()
 
 
 class TaskView(Entry):

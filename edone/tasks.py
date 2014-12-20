@@ -65,6 +65,12 @@ class Task(object):
                 self._raw_from_props()
             _need_save = True
 
+    def delete(self):
+        global _need_save
+
+        TASKS.remove(self)
+        _need_save = True
+
     def _parse_from_raw(self):
         txt = self._raw_txt
 

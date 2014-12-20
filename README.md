@@ -16,6 +16,7 @@ A GTD (todo) application written in python-efl
 * ~~Remeber view button status (all,todo,done)~~
 * ~~Sort by priority~~
 * ~~Group by tags~~
+* ~~Task deletion~~
 * Start/Due dates
 * ~~Tags colors~~
 * ~~GUI way to edit tasks properties (todo/done, prio)~~
