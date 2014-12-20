@@ -580,19 +580,16 @@ class TaskPropsMenu(Menu):
 
     def _completed_set(self, completed):
         self._task.completed = completed
-        self._task.raw_from_props()
         self.top_widget.tasks_list.update_selected()
 
     def _priority_cb(self, m, item):
         self._task.priority = item.text
-        self._task.raw_from_props()
         self.top_widget.tasks_list.update_selected()
 
     def _progress_cb(self, m, item):
         val = int(item.text[:-2])
         self._task.progress = val
         self._task.completed = True if val == 100 else False
-        self._task.raw_from_props()
         self.top_widget.tasks_list.update_selected()
 
 
@@ -617,6 +614,5 @@ class TaskView(Entry):
     def _changed_user_cb(self, en):
         if self.task:
             self.task.raw_txt = self.text
-            self.task.parse_from_raw()
             self.top_widget.tasks_list.update_selected()
 

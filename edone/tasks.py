@@ -21,51 +21,65 @@
 from __future__ import absolute_import, print_function
 
 import datetime
-# import os
-# import pickle
-# from xdg.BaseDirectory import xdg_config_home, xdg_cache_home
 
 
 TASKS = []
 
 class Task(object):
     """ Class to describe a single task """
-    def __init__(self, raw_text=''):
-        self.raw_txt = raw_text
-        self.completed = False
-        self.text = 'todo'
-        self.priority = None # 'A'
-        self.projects = [] # +
-        self.contexts = [] # @
-        self.creation_date = '2014-12-30'
-        self.completion_date = '2014-12-31'
 
-        self.progress = None
-        # self.notes = None # note:
-        # self.files = []   # files:
+    def __init__(self, raw_text=''):
+        self._raw_txt = raw_text
+        self._completed = False
+        self._text = 'todo'
+        self._priority = None # 'A'
+        self._projects = [] # +
+        self._contexts = [] # @
+        self._creation_date = '2014-12-30'
+        self._completion_date = '2014-12-31'
+
+        self._progress = None
+        # self._notes = None # note:
+        # self._files = []   # files:
 
         if raw_text:
-            self.parse_from_raw()
+            self._parse_from_raw()
 
     def __repr__(self):
-        return '<Task: "%s" +%s @%s>' % (self.raw_txt, self.projects, self.contexts)
+        return '<Task: "%s" +%s @%s>' % (self._raw_txt, self._projects, self._contexts)
 
-    def parse_from_raw(self):
-        txt = self.raw_txt
+    def __getattr__(self, name):
+        return getattr(self, '_' + name)
+
+    def __setattr__(self, name, value):
+        if name.startswith('_'):
+            object.__setattr__(self, name, value)
+        else:
+            print("SET", name, value)
+            object.__setattr__(self, '_' + name, value)
+            if name == 'raw_txt':
+                self._parse_from_raw()
+            else:
+                self._raw_from_props()
+
+            # TODO NEED SAVE
+
+    def _parse_from_raw(self):
+        txt = self._raw_txt
 
         # completed
         if txt.startswith('x '):
-            self.completed = True
+            self._completed = True
             txt = txt[2:]
         else:
-            self.completed = False
+            self._completed = False
 
         # priority
         if txt[0] == '(' and txt[1].isupper() and txt[2] == ')' and txt[3] == ' ':
-            self.priority = txt[1]
+            self._priority = txt[1]
             txt = txt[4:]
         else:
-            self.priority = None
+            self._priority = None
 
         # two dates (format: 2014-12-30)
         date1 = date2 = None
@@ -78,55 +92,55 @@ class Task(object):
             pass
 
         if date1 and date2:
-            self.completion_date = date1
-            self.creation_date = date2
+            self._completion_date = date1
+            self._creation_date = date2
         elif date1:
-            self.creation_date = date1
-            self.completion_date = None
+            self._creation_date = date1
+            self._completion_date = None
         else:
-            self.creation_date = None
-            self.completion_date = None
+            self._creation_date = None
+            self._completion_date = None
 
         # contexts & projects lists
         words = txt.split()
-        self.contexts = [ x[1:] for x in words if x[0] == '@' and len(x) > 1 ]
-        self.projects = [ x[1:] for x in words if x[0] == '+' and len(x) > 1 ]
+        self._contexts = [ x[1:] for x in words if x[0] == '@' and len(x) > 1 ]
+        self._projects = [ x[1:] for x in words if x[0] == '+' and len(x) > 1 ]
 
         # custom attributes
-        self.progress = None
+        self._progress = None
         for x in words:
             # completion progress
             if x.startswith('PROG:'):
                 try:
-                    self.progress = int(x.split(':')[1])
+                    self._progress = int(x.split(':')[1])
                     txt = txt.replace(x, '')
                 except: pass
 
-        self.text = txt
+        self._text = txt
 
-    def raw_from_props(self):
-        self.raw_txt = ''
+    def _raw_from_props(self):
+        self._raw_txt = ''
 
         # completed
-        if self.completed:
-            self.raw_txt += 'x '
+        if self._completed:
+            self._raw_txt += 'x '
 
         # priority
-        if self.priority:
-            self.raw_txt += '(%s) ' % self.priority
+        if self._priority:
+            self._raw_txt += '(%s) ' % self._priority
 
         # dates
-        if self.completion_date:
-            self.raw_txt += '%s ' % self.completion_date.strftime('%Y-%m-%d')
-        if self.creation_date:
-            self.raw_txt += '%s ' % self.creation_date.strftime('%Y-%m-%d')
+        if self._completion_date:
+            self._raw_txt += '%s ' % self._completion_date.strftime('%Y-%m-%d')
+        if self._creation_date:
+            self._raw_txt += '%s ' % self._creation_date.strftime('%Y-%m-%d')
 
         # clean text
-        self.raw_txt += self.text
+        self._raw_txt += self._text
 
         # completion progress
-        if self.progress is not None:
-            self.raw_txt += ' PROG:%d' % self.progress
+        if self._progress is not None:
+            self._raw_txt += ' PROG:%d' % self._progress
 
 
 def load_from_file(path):
@@ -141,7 +155,6 @@ def load_from_file(path):
 
     for t in TASKS:
         print(t)
-
 
 
 def save_to_file(path):
