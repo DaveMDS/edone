@@ -213,13 +213,18 @@ class OptionsMenu(Button):
         m = Menu(self.top_widget)
         self._menu = m
 
-        # main actions
+        # main actions (save, reload, quit)
         it = m.item_add(None, 'Save', 'folder',
                         lambda m,i: self.top_widget.save())
         if need_save() is False:
             it.disabled = True
+
         m.item_add(None, 'Reload', 'refresh',
                    lambda m,i: self.top_widget.reload())
+
+        m.item_add(None, 'Quit', 'exit',
+                   lambda m,i: self.top_widget.safe_quit())
+
         m.item_separator_add()
 
         # group by >
