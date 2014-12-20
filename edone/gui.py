@@ -46,7 +46,7 @@ from efl.elementary.segment_control import SegmentControl
 from efl.elementary.separator import Separator
 
 from edone.utils import options, theme_resource_get, tag_color_get
-from edone.tasks import Task, TASKS, load_from_file, save_to_file
+from edone.tasks import Task, TASKS, load_from_file, save_to_file, need_save
 
 
 EXPAND_BOTH = EVAS_HINT_EXPAND, EVAS_HINT_EXPAND
@@ -75,8 +75,7 @@ class EdoneWin(StandardWindow):
 
         # the window
         StandardWindow.__init__(self, "edone", "Edone")
-        self.autodel_set(True)
-        self.callback_delete_request_add(lambda o: elm.exit())
+        self.callback_delete_request_add(lambda o: self.safe_quit())
 
         # main vertical box
         vbox = Box(self, size_hint_weight=EXPAND_BOTH)
@@ -158,8 +157,31 @@ class EdoneWin(StandardWindow):
         self.filters.populate_lists()
         self.tasks_list.rebuild()
 
-    def save(self):
+    def save(self, and_quit=False):
         save_to_file(options.txt_file)
+        if and_quit is True:
+            elm.exit()
+
+    def safe_quit(self):
+        if need_save() is False:
+            elm.exit()
+        else:
+            pp = Popup(self, text="You have unsave changes, if you don't save now all your recent modification will be lost.")
+            pp.part_text_set('title,text', 'Save changes to your txt file?')
+
+            btn = Button(pp, text='Close without saving')
+            btn.callback_clicked_add(lambda b: elm.exit())
+            pp.part_content_set('button1', btn)
+
+            btn = Button(pp, text='Cancel')
+            btn.callback_clicked_add(lambda b: pp.delete())
+            pp.part_content_set('button2', btn)
+
+            btn = Button(pp, text='Save')
+            btn.callback_clicked_add(lambda b: self.save(True))
+            pp.part_content_set('button3', btn)
+
+            pp.show()
 
     def task_add(self):
         t = Task('New item')
@@ -192,8 +214,10 @@ class OptionsMenu(Button):
         self._menu = m
 
         # main actions
-        m.item_add(None, 'Save', 'folder',
-                   lambda m,i: self.top_widget.save())
+        it = m.item_add(None, 'Save', 'folder',
+                        lambda m,i: self.top_widget.save())
+        if need_save() is False:
+            it.disabled = True
         m.item_add(None, 'Reload', 'refresh',
                    lambda m,i: self.top_widget.reload())
         m.item_separator_add()

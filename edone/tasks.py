@@ -24,6 +24,7 @@ import datetime
 
 
 TASKS = []
+_need_save = False
 
 class Task(object):
     """ Class to describe a single task """
@@ -52,17 +53,17 @@ class Task(object):
         return getattr(self, '_' + name)
 
     def __setattr__(self, name, value):
+        global _need_save
+        
         if name.startswith('_'):
             object.__setattr__(self, name, value)
         else:
-            print("SET", name, value)
             object.__setattr__(self, '_' + name, value)
             if name == 'raw_txt':
                 self._parse_from_raw()
             else:
                 self._raw_from_props()
-
-            # TODO NEED SAVE
+            _need_save = True
 
     def _parse_from_raw(self):
         txt = self._raw_txt
@@ -143,6 +144,10 @@ class Task(object):
             self._raw_txt += ' PROG:%d' % self._progress
 
 
+def need_save():
+    return _need_save
+
+
 def load_from_file(path):
     print('Loading tasks from file: "%s"' % path)
 
@@ -158,9 +163,11 @@ def load_from_file(path):
 
 
 def save_to_file(path):
+    global _need_save
     print('Saving tasks to file: "%s"' % path)
 
     with open(path, 'w') as f:
         for t in TASKS:
             print(t.raw_txt, file=f)
+    _need_save = False
 
