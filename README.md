@@ -12,6 +12,8 @@ A GTD (todo) application written in python-efl
 * ~~Fix fileselector when selected file not esists~~
 * ~~Click on Menu should close the menu (if yet opened)~~
 * Reload side lists when edited done
+* ~~Safe window close (ask to save)~~
+* ~~Remeber view button status (all,todo,done)~~
 * ~~Sort by priority~~
 * ~~Group by tags~~
 * Start/Due dates

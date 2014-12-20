@@ -303,26 +303,17 @@ class OptionsMenu(Button):
         popup.delete()
 
 
-FILTER_STATUS_ALL = 0
-FILTER_STATUS_TODO = 1
-FILTER_STATUS_DONE = 2
-
 class Filters(Box):
     def __init__(self, parent):
-        self.status = FILTER_STATUS_ALL
-
         Box.__init__(self, parent,
                      size_hint_weight=EXPAND_VERT, size_hint_align=FILL_VERT)
 
-        # status
+        # status (view: all, todo or done)
         seg = SegmentControl(self)
-        it = seg.item_add(None, "All")
-        it.data['status'] = FILTER_STATUS_ALL
-        it.selected = True
-        it = seg.item_add(None, "Todo")
-        it.data['status'] = FILTER_STATUS_TODO
-        it = seg.item_add(None, "Done")
-        it.data['status'] = FILTER_STATUS_DONE
+        for name, val in ('All','all'),('Todo','todo'),('Done','done'):
+            it = seg.item_add(None, name)
+            it.data['view'] = val
+            it.selected = True if options.view == val else False
         seg.callback_changed_add(self._status_changed_cb)
         self.pack_end(seg)
         seg.show()
@@ -374,7 +365,7 @@ class Filters(Box):
         return [ item.text for item in self.projs_list.items ]
 
     def _status_changed_cb(self, seg, item):
-        self.status = item.data['status']
+        options.view = item.data['view']
         self.top_widget.tasks_list.rebuild()
 
     def _list_selection_changed_cb(self, li, it):
@@ -485,8 +476,8 @@ class TasksList(Genlist):
             sort_key = None
 
         for t in sorted(TASKS, key=sort_key):
-            if (filters.status == FILTER_STATUS_DONE and not t.completed) or \
-               (filters.status == FILTER_STATUS_TODO and t.completed):
+            if (options.view == 'done' and not t.completed) or \
+               (options.view == 'todo' and t.completed):
                 continue
 
             f1 = True if ctx_set is None else \

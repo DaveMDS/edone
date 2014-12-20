@@ -38,6 +38,7 @@ class Options(object):
         self.txt_file = os.path.join(config_path, 'Todo.txt')
         self.group_by = 'none' # or 'prj' or 'ctx'
         self.sort_by = 'pri' # or 'none'
+        self.view = 'all' # or 'todo' or 'done'
         self.tag_colors = {} # key: tag_name  data: color_tuple
         self.def_prj_color = (0, 0, 255, 255)
         self.def_ctx_color = (255, 0, 0, 255)
