@@ -117,7 +117,7 @@ class Task(object):
         self._progress = None
         for x in words:
             # completion progress
-            if x.startswith('PROG:'):
+            if x.startswith('prog:'):
                 try:
                     self._progress = int(x.split(':')[1])
                     txt = txt.replace(x, '')
@@ -147,7 +147,7 @@ class Task(object):
 
         # completion progress
         if self._progress is not None:
-            self._raw_txt += ' PROG:%d' % self._progress
+            self._raw_txt += ' prog:%d' % self._progress
 
 
 def need_save():
