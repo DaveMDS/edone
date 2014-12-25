@@ -443,14 +443,16 @@ class ColorRect(Frame):
 class TasksList(Genlist):
     def __init__(self, parent):
         self.itc = GenlistItemClass(item_style="default_style",
+                        decorate_item_style='full',
                         text_get_func=self._gl_text_get,
                         content_get_func=self._gl_content_get)
         self.itcg = GenlistItemClass(item_style="group_index",
                         text_get_func=self._gl_g_text_get)
         Genlist.__init__(self, parent, mode=ELM_LIST_COMPRESS, homogeneous=True)
         self.callback_selected_add(self._item_selected_cb)
-        self.callback_longpressed_add(self._item_longpressed_cb)
-        self.callback_clicked_double_add(self._item_longpressed_cb)
+        self.callback_longpressed_add(lambda gl,it: TaskPropsMenu(gl, it.data))
+        self.callback_activated_add(lambda gl,it: self._it_edit_start(it))
+        self.callback_item_unfocused_add(lambda gl,it: self._it_edit_end(True))
         self.show()
         self.groups = {} # key: group_name  data: genlist_group_item
 
@@ -530,8 +532,18 @@ class TasksList(Genlist):
     def _item_selected_cb(self, gl, item):
         self.top_widget.task_view.update(item.data)
 
-    def _item_longpressed_cb(self, gl, item):
-        TaskPropsMenu(gl, item.data)
+    def _it_edit_start(self, item):
+        item.decorate_mode = ('edit', True)
+
+    def _it_edit_end(self, save):
+        item = self.decorated_item
+        if item is not None:
+            if save:
+                task = item.data
+                task.raw_txt = item.part_content_get('elm.swallow.content').text
+            item.decorate_mode = ('edit', False)
+            item.selected = True
+            item.update()
 
     def _gl_g_text_get(self, obj, part, group_name):
         if group_name == '+': return 'Tasks without any projects'
@@ -556,13 +568,27 @@ class TasksList(Genlist):
             return formatted
 
     def _gl_content_get(self, obj, part, task):
-        if part == 'elm.swallow.icon' and task.priority is not None:
-            fname = task.priority + '.png'
-            return Icon(self, file=theme_resource_get(fname))
+        if part == 'elm.swallow.content':
+            # this is the full style for the 'edit' mode
+            en = Entry(self, editable=True, single_line=True,
+                       scrollable=True, propagate_events=False,
+                       text=task.raw_txt)
+            en.callback_activated_add(lambda e: self._it_edit_end(True))
+            en.callback_aborted_add(lambda e: self._it_edit_end(False))
+            en.show()
+            en.cursor_end_set() # TODO move cursor to the mouse pos
+            en.focus = True
+            return en
 
-        if part == 'elm.swallow.end' and task.progress is not None:
-            return Progressbar(self, span_size=100,
-                               value=float(task.progress) / 100)
+        elif part == 'elm.swallow.icon':
+            if task.priority is not None:
+                fname = task.priority + '.png'
+                return Icon(self, file=theme_resource_get(fname))
+
+        elif part == 'elm.swallow.end':
+            if task.progress is not None:
+                val = float(task.progress) / 100
+                return Progressbar(self, span_size=100, value=val)
 
 
 class TaskPropsMenu(Menu):
