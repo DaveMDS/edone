@@ -709,5 +709,3 @@ class TaskNote(Entry):
         self.task.create_note_filename()
         self.update()
         self.focus = True
-
-    # TODO delete note on task deletion

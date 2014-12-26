@@ -71,6 +71,9 @@ class Task(object):
     def delete(self):
         global _need_save
 
+        if self._note and os.path.exists(self._note):
+            os.remove(self._note)
+
         TASKS.remove(self)
         _need_save = True
 
