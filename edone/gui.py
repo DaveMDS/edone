@@ -33,7 +33,8 @@ from efl.elementary.entry import Entry, ELM_TEXT_FORMAT_PLAIN_UTF8
 from efl.elementary.fileselector import Fileselector
 from efl.elementary.frame import Frame
 from efl.elementary.genlist import Genlist, GenlistItemClass, \
-    ELM_LIST_COMPRESS, ELM_GENLIST_ITEM_GROUP
+    ELM_LIST_COMPRESS, ELM_GENLIST_ITEM_GROUP, \
+    ELM_OBJECT_SELECT_MODE_DISPLAY_ONLY
 from efl.elementary.icon import Icon
 from efl.elementary.label import Label
 from efl.elementary.list import List
@@ -465,14 +466,14 @@ class TasksList(Genlist):
         search = self.top_widget.search_entry.text
 
         # first add all the group items (if grouping enable)
-        if options.group_by == 'prj':
-            for group_name in filters.all_projects + ['+']:
-                self.groups[group_name] = self.item_append(self.itcg,
-                                    group_name, flags=ELM_GENLIST_ITEM_GROUP)
-        elif options.group_by == 'ctx':
-            for group_name in filters.all_contexts + ['@']:
-                self.groups[group_name] = self.item_append(self.itcg,
-                                    group_name, flags=ELM_GENLIST_ITEM_GROUP)
+        if   options.group_by == 'prj': L = filters.all_projects + ['+']
+        elif options.group_by == 'ctx': L = filters.all_contexts + ['@']
+        else:                           L = []
+        for group_name in L:
+            git = self.item_append(self.itcg, group_name,
+                                   flags=ELM_GENLIST_ITEM_GROUP)
+            git.select_mode = ELM_OBJECT_SELECT_MODE_DISPLAY_ONLY
+            self.groups[group_name] = git
 
         if options.sort_by == 'pri':
             sort_key = attrgetter('raw_txt')
