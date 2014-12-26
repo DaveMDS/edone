@@ -223,8 +223,12 @@ class OptionsMenu(Button):
         m.item_add(None, 'Quit', 'exit',
                    lambda m,i: self.top_widget.safe_quit())
 
+        # Todo.txt file...
         m.item_separator_add()
-
+        m.item_add(None, 'Choose Todo.txt file', None,
+                   lambda m,i: self._file_change())
+        m.item_separator_add()
+        
         # group by >
         it_groupby = m.item_add(None, 'Group by')
         icon = 'arrow_right' if options.group_by == 'none' else None
@@ -254,10 +258,6 @@ class OptionsMenu(Button):
         icon = 'arrow_right' if options.horiz_layout is True else None
         m.item_add(it_layout, 'Horizontal', icon,
                    lambda m,i: self._layout_set(True))
-
-        # Todo.txt file...
-        m.item_add(None, 'Todo.txt file...', None,
-                   lambda m,i: self._file_change())
 
         # show the menu
         x, y, w, h = self.geometry
@@ -635,7 +635,7 @@ class TaskPropsMenu(Menu):
 
         # delete task
         self.item_separator_add()
-        self.item_add(None, 'Delete task', None, self._confirm_delete)
+        self.item_add(None, 'Delete task', 'delete', self._confirm_delete)
 
         # show the menu at mouse position
         x, y = self.evas.pointer_canvas_xy_get()
@@ -712,6 +712,7 @@ class TaskNote(Entry):
     def _unfocused_cb(self, entry):
         if self.task and not entry.text:
             self.task.note = None
+        self.top_widget.tasks_list.update_selected()
 
     def _clicked_cb(self, entry):
         if self.task is None:
