@@ -448,7 +448,10 @@ class TasksList(Genlist):
                         text_get_func=self._gl_g_text_get)
         Genlist.__init__(self, parent, mode=ELM_LIST_COMPRESS, homogeneous=True)
         self.callback_selected_add(self._item_selected_cb)
-        self.callback_longpressed_add(lambda gl,it: TaskPropsMenu(gl, it.data))
+        try: # TODO remove the try once 1.13 is released
+            self.callback_clicked_right_add(self._item_clicked_right_cb)
+        except: pass
+        self.callback_longpressed_add(self._item_clicked_right_cb)
         self.callback_activated_add(lambda gl,it: self._it_edit_start(it))
         self.callback_item_unfocused_add(lambda gl,it: self._it_edit_end(True))
         self.show()
@@ -529,6 +532,10 @@ class TasksList(Genlist):
     def update_selected(self):
         if self.selected_item:
             self.selected_item.update()
+
+    def _item_clicked_right_cb(self, gl, item):
+        item.selected = True
+        TaskPropsMenu(gl, item.data)
 
     def _item_selected_cb(self, gl, item):
         self.top_widget.task_note.update(item.data)
