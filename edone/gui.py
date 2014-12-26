@@ -29,7 +29,7 @@ from efl.elementary.window import StandardWindow
 from efl.elementary.box import Box
 from efl.elementary.button import Button
 from efl.elementary.colorselector import Colorselector
-from efl.elementary.entry import Entry, ELM_WRAP_MIXED
+from efl.elementary.entry import Entry, ELM_TEXT_FORMAT_PLAIN_UTF8
 from efl.elementary.fileselector import Fileselector
 from efl.elementary.frame import Frame
 from efl.elementary.genlist import Genlist, GenlistItemClass, \
@@ -145,7 +145,7 @@ class EdoneWin(StandardWindow):
         panes.part_content_set("left", self.tasks_list)
 
         ### the single task view ###
-        self.task_view = TaskView(panes)
+        self.task_view = TaskNote(panes)
         panes.part_content_set("right", self.task_view)
 
         # show the window
@@ -662,26 +662,51 @@ class TaskPropsMenu(Menu):
         self.top_widget.tasks_list.rebuild()
 
 
-class TaskView(Entry):
+class TaskNote(Entry):
+    GUIDE1 = 'Select a task and click here to add additional notes to the task.'
+    GUIDE2 = 'Click here to add additional notes to the task.'
     def __init__(self, parent):
         self.task = None
-        Entry.__init__(self, parent, line_wrap=ELM_WRAP_MIXED, scrollable=True,
+        Entry.__init__(self, parent, scrollable=True, disabled=True,
                        size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
-        self.part_text_set('guide', 'Select a task to edit')
-        self.callback_changed_user_add(self._changed_user_cb)
+        self.part_text_set('guide', self.GUIDE1)
+        self.callback_clicked_add(self._clicked_cb)
+        self.callback_unfocused_add(self._unfocused_cb)
         self.show()
 
     def update(self, task=None):
         if task is not None:
             self.task = task
-        self.text = self.task.raw_txt
+
+        self.part_text_set('guide', self.GUIDE2 if self.task else self.GUIDE1)
+
+        if self.task and self.task.note:
+            try:
+                self.file_set(self.task.note, ELM_TEXT_FORMAT_PLAIN_UTF8)
+            except:
+                pass
+            self.disabled = False
+        else:
+            self.file_set(None, None)
+            self.disabled = True
 
     def clear(self):
         self.task = None
-        self.text = None
+        self.update()
 
-    def _changed_user_cb(self, en):
-        if self.task:
-            self.task.raw_txt = self.text
-            self.top_widget.tasks_list.update_selected()
+    def _unfocused_cb(self, entry):
+        if self.task and not entry.text:
+            self.task.note = None
 
+    def _clicked_cb(self, entry):
+        if self.task is None:
+            return
+
+        if self.file[0] is not None:
+            return
+
+        self.task.create_note_filename()
+        self.update()
+        self.focus = True
+
+    # TODO delete note on task deletion

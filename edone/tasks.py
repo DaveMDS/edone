@@ -20,10 +20,13 @@
 
 from __future__ import absolute_import, print_function
 
+import os
 import datetime
 
 
 TASKS = []
+
+_notes_path = None
 _need_save = False
 
 class Task(object):
@@ -39,9 +42,9 @@ class Task(object):
         self._creation_date = '2014-12-30'
         self._completion_date = '2014-12-31'
 
-        self._progress = None
-        # self._notes = None # note:
-        # self._files = []   # files:
+        self._progress = None # int(0-100)     TAG = prog:XX
+        self._note = None     # note file name TAG = note:XXXX.txt
+        # self._files = []    # files:
 
         if raw_text:
             self._parse_from_raw()
@@ -70,6 +73,23 @@ class Task(object):
 
         TASKS.remove(self)
         _need_save = True
+
+    def create_note_filename(self):
+        # create notes folder if needed
+        if not os.path.exists(_notes_path):
+            os.mkdir(_notes_path)
+
+        # find a free file name
+        if self.note is None:
+            i = 1
+            while True:
+                fname = os.path.join(_notes_path, '%03d.txt' % i)
+                if not os.path.exists(fname):
+                    break
+                i += 1
+            
+            # store filename triggering _raw_from_props()
+            self.note = os.path.join(_notes_path, fname)
 
     def _parse_from_raw(self):
         txt = self._raw_txt
@@ -123,6 +143,14 @@ class Task(object):
                     txt = txt.replace(x, '')
                 except: pass
 
+            # note file
+            elif x.startswith('note:'):
+                try:
+                    fname = x.split(':')[1]
+                    self._note = os.path.join(_notes_path, fname)
+                    txt = txt.replace(x, '')
+                except: pass
+
         self._text = txt
 
     def _raw_from_props(self):
@@ -149,14 +177,20 @@ class Task(object):
         if self._progress is not None:
             self._raw_txt += ' prog:%d' % self._progress
 
+        # note file
+        if self._note is not None:
+            self._raw_txt += ' note:%s' % os.path.basename(self._note)
+
 
 def need_save():
     return _need_save
 
 
 def load_from_file(path):
+    global _notes_path
     print('Loading tasks from file: "%s"' % path)
 
+    _notes_path = path + '.notes'
     del TASKS[:]
 
     with open(path) as f:
@@ -164,8 +198,6 @@ def load_from_file(path):
             t = Task(line.strip())
             TASKS.append(t)
 
-    for t in TASKS:
-        print(t)
 
 
 def save_to_file(path):

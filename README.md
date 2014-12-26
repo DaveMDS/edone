@@ -7,6 +7,10 @@ A GTD (todo) application written in python-efl
 ## Features ##
 
 * Todo.txt compliant
+* Great view flexibility: sorting and grouping of tasks
+* Customizable colors for +projects and @contexts
+* Additional notes for tasks (custom tag note:XXX.txt)
+* Additional completion progress for tasks (custom tag prog:XX)
 
 ## Todo ##
 * ~~Fix fileselector when selected file not esists~~
@@ -22,7 +26,7 @@ A GTD (todo) application written in python-efl
 * ~~GUI way to edit tasks properties (todo/done, prio)~~
 * ~~Edit tasks inplace`~~
 * DND tags-on-tasks and tasks-on-tags
-* Notes for tasks
+* ~~Notes for tasks~~
 * Attachments for tasks
 * ~~Task completion progress~~
 
