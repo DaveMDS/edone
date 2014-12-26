@@ -587,9 +587,22 @@ class TasksList(Genlist):
                 return Icon(self, file=theme_resource_get(fname))
 
         elif part == 'elm.swallow.end':
+            ends = []
+
             if task.progress is not None:
                 val = float(task.progress) / 100
-                return Progressbar(self, span_size=100, value=val)
+                ends.append(Progressbar(self, span_size=100, value=val))
+
+            if task.note is not None:
+                ends.append(Icon(self, file=theme_resource_get('note.png'),
+                                 size_hint_min=(20,20)))
+
+            if ends:
+                box = Box(self, horizontal=True)
+                for widget in ends:
+                    widget.show()
+                    box.pack_end(widget)
+                return box
 
 
 class TaskPropsMenu(Menu):
