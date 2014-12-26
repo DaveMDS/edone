@@ -69,7 +69,7 @@ class EdoneWin(StandardWindow):
         # main widget 'pointers'
         self.tasks_list = None
         self.filters = None
-        self.task_view = None
+        self.task_note = None
         self.search_entry = None
         self.main_panes = None
 
@@ -145,8 +145,8 @@ class EdoneWin(StandardWindow):
         panes.part_content_set("left", self.tasks_list)
 
         ### the single task view ###
-        self.task_view = TaskNote(panes)
-        panes.part_content_set("right", self.task_view)
+        self.task_note = TaskNote(panes)
+        panes.part_content_set("right", self.task_note)
 
         # show the window
         self.resize(800, 600)
@@ -188,8 +188,8 @@ class EdoneWin(StandardWindow):
         TASKS.append(t)
         it = self.tasks_list.item_add(t)
         it.selected = True
-        self.task_view.focus = True
-        self.task_view.select_all()
+        self.task_note.focus = True
+        self.task_note.select_all()
 
     def _search_changed_user_cb(self, en):
         self.tasks_list.rebuild()
@@ -460,7 +460,7 @@ class TasksList(Genlist):
         LOG('rebuild tasks list (%d tasks)' % len(TASKS))
         self.clear()
         self.groups = {}
-        self.top_widget.task_view.clear()
+        self.top_widget.task_note.clear()
 
         filters = self.top_widget.filters
         ctx_set = filters.context_filter
@@ -530,7 +530,7 @@ class TasksList(Genlist):
             self.selected_item.update()
 
     def _item_selected_cb(self, gl, item):
-        self.top_widget.task_view.update(item.data)
+        self.top_widget.task_note.update(item.data)
 
     def _it_edit_start(self, item):
         item.decorate_mode = ('edit', True)
@@ -643,7 +643,7 @@ class TaskPropsMenu(Menu):
         self.top_widget.tasks_list.update_selected()
 
     def _confirm_delete(self, m, item):
-        pp = Popup(self.parent, text=self._task.text)
+        pp = Popup(self.top_widget, text=self._task.text)
         pp.part_text_set('title,text', 'Confirm task deletion?')
 
         btn = Button(pp, text='Cancel')
@@ -658,6 +658,7 @@ class TaskPropsMenu(Menu):
 
     def _delete_confirmed(self, b, popup):
         popup.delete()
+        self.top_widget.task_note.clear()
         self._task.delete()
         self.top_widget.tasks_list.rebuild()
 
