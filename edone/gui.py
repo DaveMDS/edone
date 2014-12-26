@@ -184,12 +184,9 @@ class EdoneWin(StandardWindow):
             pp.show()
 
     def task_add(self):
-        t = Task('New item')
+        t = Task('A new task')
         TASKS.append(t)
-        it = self.tasks_list.item_add(t)
-        it.selected = True
-        self.task_note.focus = True
-        self.task_note.select_all()
+        self.tasks_list.item_add(t, start_editing=True)
 
     def _search_changed_user_cb(self, en):
         self.tasks_list.rebuild()
@@ -505,7 +502,7 @@ class TasksList(Genlist):
             if len(item.subitems_get()) == 0:
                 item.delete()
 
-    def item_add(self, t):
+    def item_add(self, t, start_editing=False):
         # no grouping (just append the item)
         if options.group_by == 'none':
             it = self.item_append(self.itc, t)
@@ -523,7 +520,10 @@ class TasksList(Genlist):
                     it = self.item_append(self.itc, t, self.groups['@'+c])
             else:
                 it = self.item_append(self.itc, t, self.groups['@'])
-        return it
+        # start editing if requested
+        if start_editing:
+            it.selected = True
+            self._it_edit_start(it)
 
     def update_selected(self):
         if self.selected_item:
