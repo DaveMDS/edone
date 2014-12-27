@@ -5,7 +5,7 @@ from distutils.core import setup
 
 setup(
     name = 'edone',
-    version = '0.1',
+    version = '0.9',
     description = 'Getting-Things-Done',
     long_description = 'Getting-Things-Done written in Python-EFL',
     license = "GNU GPL",

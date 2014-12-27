@@ -2,7 +2,16 @@
 Edone
 =====
 
-A GTD (todo) application written in python-efl
+A GTD (todo) application written in python-efl.
+
+Edone is fully compliant with the **Todo.txt** specifications, this basically
+means that your todo items are stored in a simple and readable text file and
+that you can use any other compliant client to read/edit your tasks.
+
+See the [Todo.txt](http://todotxt.com) website for more info, or the
+[File Format Specifications](https://github.com/ginatrapani/todo.txt-cli/wiki/The-Todo.txt-Format)
+if you are intrestend in the details.
+
 
 ## Features ##
 

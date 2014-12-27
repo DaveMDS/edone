@@ -500,7 +500,7 @@ class TasksList(Genlist):
                 self.item_add(t)
 
         # and finally delete empty group items
-        for name, item in self.groups.iteritems():
+        for name, item in self.groups.items():
             # TODO this should be: item.subitems_count()... but it does not work
             if len(item.subitems_get()) == 0:
                 item.delete()
