@@ -441,19 +441,17 @@ class ColorRect(Frame):
 class TasksList(Genlist):
     def __init__(self, parent):
         self.itc = GenlistItemClass(item_style="default_style",
-                        decorate_item_style='full',
-                        text_get_func=self._gl_text_get,
-                        content_get_func=self._gl_content_get)
+                                    text_get_func=self._gl_text_get,
+                                    content_get_func=self._gl_content_get)
         self.itcg = GenlistItemClass(item_style="group_index",
-                        text_get_func=self._gl_g_text_get)
+                                     text_get_func=self._gl_g_text_get)
         Genlist.__init__(self, parent, mode=ELM_LIST_COMPRESS, homogeneous=True)
         self.callback_selected_add(self._item_selected_cb)
         try: # TODO remove the try once 1.13 is released
             self.callback_clicked_right_add(self._item_clicked_right_cb)
         except: pass
         self.callback_longpressed_add(self._item_clicked_right_cb)
-        self.callback_activated_add(lambda gl,it: self._it_edit_start(it))
-        self.callback_item_unfocused_add(lambda gl,it: self._it_edit_end(True))
+        self.callback_activated_add(lambda gl,it: self._task_edit_start(it.data))
         self.show()
         self.groups = {} # key: group_name  data: genlist_group_item
 
@@ -527,7 +525,7 @@ class TasksList(Genlist):
         # start editing if requested
         if start_editing:
             it.selected = True
-            self._it_edit_start(it)
+            self._task_edit_start(t)
 
     def update_selected(self):
         if self.selected_item:
@@ -540,18 +538,32 @@ class TasksList(Genlist):
     def _item_selected_cb(self, gl, item):
         self.top_widget.task_note.update(item.data)
 
-    def _it_edit_start(self, item):
-        item.decorate_mode = ('edit', True)
+    def _task_edit_start(self, task):
+        pp = Popup(self.top_widget)
+        pp.part_text_set('title,text', 'Edit task')
 
-    def _it_edit_end(self, save):
-        item = self.decorated_item
-        if item is not None:
-            if save:
-                task = item.data
-                task.raw_txt = item.part_content_get('elm.swallow.content').text
-            item.decorate_mode = ('edit', False)
-            item.selected = True
-            item.update()
+        en = Entry(pp, editable=True, single_line=True, scrollable=True,
+                   text=task.raw_txt)
+        en.callback_activated_add(lambda e: self._task_edit_end(task, en, pp))
+        en.callback_aborted_add(lambda e: pp.delete())
+        pp.part_content_set('default', en)
+
+        b = Button(pp, text='Cancel')
+        b.callback_clicked_add(lambda b: pp.delete())
+        pp.part_content_set('button1', b)
+
+        b = Button(pp, text='Accept')
+        b.callback_clicked_add(lambda b: self._task_edit_end(task, en, pp))
+        pp.part_content_set('button2', b)
+
+        pp.show()
+
+    def _task_edit_end(self, task, entry, popup):
+        new_raw = entry.text
+        if new_raw:
+            task.raw_txt = entry.text
+            popup.delete()
+            self.update_selected()
 
     def _gl_g_text_get(self, obj, part, group_name):
         if group_name == '+': return 'Tasks without any projects'
@@ -576,19 +588,8 @@ class TasksList(Genlist):
             return formatted
 
     def _gl_content_get(self, obj, part, task):
-        if part == 'elm.swallow.content':
-            # this is the full style for the 'edit' mode
-            en = Entry(self, editable=True, single_line=True,
-                       scrollable=True, propagate_events=False,
-                       text=task.raw_txt)
-            en.callback_activated_add(lambda e: self._it_edit_end(True))
-            en.callback_aborted_add(lambda e: self._it_edit_end(False))
-            en.show()
-            en.cursor_end_set() # TODO move cursor to the mouse pos
-            en.focus = True
-            return en
 
-        elif part == 'elm.swallow.icon':
+        if part == 'elm.swallow.icon':
             if task.priority is not None:
                 fname = task.priority + '.png'
                 return Icon(self, file=theme_resource_get(fname))
