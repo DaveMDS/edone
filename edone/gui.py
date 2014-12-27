@@ -77,6 +77,7 @@ class EdoneWin(StandardWindow):
         # the window
         StandardWindow.__init__(self, "edone", "Edone")
         self.callback_delete_request_add(lambda o: self.safe_quit())
+        self.focus_highlight_enabled = True
 
         # main vertical box
         vbox = Box(self, size_hint_weight=EXPAND_BOTH)
@@ -96,7 +97,7 @@ class EdoneWin(StandardWindow):
         m.show()
 
         # new task button
-        b = Button(hbox1, text='New Task')
+        b = Button(hbox1, text='New Task', focus_allow=False)
         b.content = Icon(hbox1, standard='add')
         b.callback_clicked_add(lambda b: self.task_add())
         hbox1.pack_end(b)
@@ -196,7 +197,7 @@ class EdoneWin(StandardWindow):
 class OptionsMenu(Button):
     def __init__(self, parent):
         self._menu = None
-        Button.__init__(self, parent, text='Menu',
+        Button.__init__(self, parent, text='Menu', focus_allow=False,
                         content=Icon(parent, standard='home'))
         self.callback_pressed_add(self._button_pressed_cb)
 
@@ -312,7 +313,7 @@ class Filters(Box):
                      size_hint_weight=EXPAND_VERT, size_hint_align=FILL_VERT)
 
         # status (view: all, todo or done)
-        seg = SegmentControl(self)
+        seg = SegmentControl(self, focus_allow=False)
         for name, val in ('All','all'),('Todo','todo'),('Done','done'):
             it = seg.item_add(None, name)
             it.data['view'] = val
@@ -326,7 +327,7 @@ class Filters(Box):
         self.pack_end(label)
         label.show()
 
-        self.projs_list = List(self, multi_select=True,
+        self.projs_list = List(self, multi_select=True, focus_allow=False,
                                size_hint_weight=EXPAND_BOTH,
                                size_hint_align=FILL_BOTH)
         self.projs_list.callback_selected_add(self._list_selection_changed_cb)
@@ -339,7 +340,7 @@ class Filters(Box):
         self.pack_end(label)
         label.show()
 
-        self.cxts_list = List(self, multi_select=True,
+        self.cxts_list = List(self, multi_select=True, focus_allow=False,
                               size_hint_weight=EXPAND_BOTH,
                               size_hint_align=FILL_BOTH)
         self.cxts_list.callback_selected_add(self._list_selection_changed_cb)
