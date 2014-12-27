@@ -22,6 +22,16 @@ if you are intrestend in the details.
 * Additional notes for tasks (custom tag note:XXX.txt)
 * Additional completion progress for tasks (custom tag prog:XX)
 
+
+## Usage tips ##
+* To added new **+Project** or **@Context** just type them in the task, prefixed by the **+** or the **@** symbol.
+* You can change the **color of tags** clicking on the small colored rectangle.
+* Select one ore more +Project or @Context in the side lists to filter the tasks.
+* **Double-click** a task to edit.
+* **Right-click** (or longpress) a task to change it's properties.
+* Put your Todo.txt file in your **Dropbox** folder to keep your tasks in sync with other device/apps.
+
+
 ## Todo ##
 * ~~Fix fileselector when selected file not esists~~
 * ~~Click on Menu should close the menu (if yet opened)~~

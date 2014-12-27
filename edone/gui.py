@@ -22,10 +22,11 @@ from __future__ import absolute_import, print_function
 
 import os
 from operator import attrgetter
-        
+
 from efl import elementary as elm
 from efl.evas import Rectangle, EVAS_HINT_EXPAND, EVAS_HINT_FILL
 from efl.elementary.window import StandardWindow
+from efl.elementary.innerwindow import InnerWindow
 from efl.elementary.box import Box
 from efl.elementary.button import Button
 from efl.elementary.colorselector import Colorselector
@@ -57,12 +58,26 @@ FILL_BOTH = EVAS_HINT_FILL, EVAS_HINT_FILL
 FILL_HORIZ = EVAS_HINT_FILL, 0.5
 FILL_VERT = 0.5, EVAS_HINT_FILL
 
+VERSION = '0.9'
 DONE_FONT = 'color=#AAA strikethrough=on strikethrough_color=#222'
+INFO = """
+<subtitle>Info</subtitle><br>
+<hilight>Edone</hilight> is fully compliant with the <hilight>Todo.txt</hilight> specifications.<br>
+This basically means that your todo items are stored in a <b>simple and readable text file</b> and you can use any other compliant client to read/edit your tasks.<br>
 
+<br><subtitle>Usage tips</subtitle><br>
+1. To added new <hilight>+Project</hilight> or <hilight>@Context</hilight> just type them in the task, prefixed by the <hilight>+</hilight> or the <hilight>@</hilight> symbol.<br>
+2. You can change the <b>color of tags</b> clicking on the small colored rectangle.<br>
+3. Select one ore more +Project or @Context in the side lists to filter the tasks.<br>
+4. <b>Double-click</b> a task to edit.<br>
+5. <b>Right-click</b> (or longpress) a task to change it's properties.<br>
+6. Put your Todo.txt file in your <hilight>Dropbox</hilight> folder to keep your tasks in sync with other device/apps.<br>
 
-def LOG(text):
-    print(text)
-    # pass
+<br><subtitle>License</subtitle><br>
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.<br><br>
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.<br><br>
+You should have received a copy of the GNU General Public License along with this program.  If not, see http://www.gnu.org/licenses/.<br><br>
+"""
 
 
 class EdoneWin(StandardWindow):
@@ -223,6 +238,9 @@ class OptionsMenu(Button):
 
         m.item_add(None, 'Quit', 'exit',
                    lambda m,i: self.top_widget.safe_quit())
+
+        m.item_add(None, 'Info and help', 'info',
+                   lambda m,i: InfoWin(self.top_widget))
 
         # Todo.txt file...
         m.item_separator_add()
@@ -457,7 +475,6 @@ class TasksList(Genlist):
         self.groups = {} # key: group_name  data: genlist_group_item
 
     def rebuild(self):
-        LOG('rebuild tasks list (%d tasks)' % len(TASKS))
         self.clear()
         self.groups = {}
         self.top_widget.task_note.clear()
@@ -733,3 +750,33 @@ class TaskNote(Entry):
         self.task.create_note_filename()
         self.update()
         self.focus = True
+
+
+class InfoWin(InnerWindow):
+    def __init__(self, parent):
+        InnerWindow.__init__(self, parent)
+
+        vbox = Box(self)
+        vbox.show()
+        self.content = vbox
+
+        title = Label(self, scale=2.0, text='Edone %s' % VERSION)
+        title.show()
+        vbox.pack_end(title)
+
+        en = Entry(self, text=INFO, editable=False, scrollable=True,
+                   size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
+        en.show()
+        vbox.pack_end(en)
+
+        sep = Separator(self, horizontal=True)
+        sep.show()
+        vbox.pack_end(sep)
+
+        close = Button(self, text='Close')
+        close.callback_clicked_add(lambda b: self.delete())
+        close.show()
+        vbox.pack_end(close)
+
+        self.activate()
+        

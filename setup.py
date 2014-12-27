@@ -2,10 +2,9 @@
 
 from distutils.core import setup
 
-
 setup(
     name = 'edone',
-    version = '0.9',
+    version = '0.9', # Don't forget to change also in gui.py
     description = 'Getting-Things-Done',
     long_description = 'Getting-Things-Done written in Python-EFL',
     license = "GNU GPL",
@@ -24,24 +23,3 @@ setup(
         ('share/icons/hicolor/256x256/apps', ['data/icons/256x256/edone.png']),
     ]
 )
-
-
-# APPUNTI:
-# https://github.com/ginatrapani/todo.txt-cli/wiki/The-Todo.txt-Format
-# http://todotxt.com/
-# https://www.todotxtpp.com/
-
-
-# Topbar:
-# Save / Reload /                        / SearchBox
-
-# Filterbar:
-# All / Todo / Done
-# ---------
-# start/due date filter ???
-# ---------
-# @ list
-# ---------
-# + list
-
-
