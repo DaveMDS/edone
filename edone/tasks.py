@@ -133,8 +133,8 @@ class Task(object):
 
         # contexts & projects lists
         words = txt.split()
-        self._contexts = [ x[1:] for x in words if x[0] == '@' and len(x) > 1 ]
-        self._projects = [ x[1:] for x in words if x[0] == '+' and len(x) > 1 ]
+        self._contexts = [ x for x in words if x[0] == '@' and len(x) > 1 ]
+        self._projects = [ x for x in words if x[0] == '+' and len(x) > 1 ]
 
         # custom attributes
         self._progress = None

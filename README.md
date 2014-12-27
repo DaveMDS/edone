@@ -35,7 +35,7 @@ if you are intrestend in the details.
 ## Todo ##
 * ~~Fix fileselector when selected file not esists~~
 * ~~Click on Menu should close the menu (if yet opened)~~
-* Reload side lists when edited done
+* ~~Reload side lists when edited done~~
 * ~~Safe window close (ask to save)~~
 * ~~Remeber view button status (all,todo,done)~~
 * ~~Sort by priority~~

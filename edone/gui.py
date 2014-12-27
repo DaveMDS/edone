@@ -22,6 +22,7 @@ from __future__ import absolute_import, print_function
 
 import os
 from operator import attrgetter
+from itertools import chain
 
 from efl import elementary as elm
 from efl.evas import Rectangle, EVAS_HINT_EXPAND, EVAS_HINT_FILL
@@ -327,6 +328,7 @@ class OptionsMenu(Button):
 
 class Filters(Box):
     def __init__(self, parent):
+        self._freezed = False  # used in populate to not trigger callbacks
         Box.__init__(self, parent,
                      size_hint_weight=EXPAND_VERT, size_hint_align=FILL_VERT)
 
@@ -370,12 +372,12 @@ class Filters(Box):
 
     @property
     def context_filter(self):
-        L = [ item.text[1:] for item in  self.cxts_list.selected_items ]
+        L = [ item.text for item in self.cxts_list.selected_items ]
         return set(L) if L else None
 
     @property
     def project_filter(self):
-        L = [ item.text[1:] for item in  self.projs_list.selected_items ]
+        L = [ item.text for item in self.projs_list.selected_items ]
         return set(L) if L else None
 
     @property
@@ -391,32 +393,31 @@ class Filters(Box):
         self.top_widget.tasks_list.rebuild()
 
     def _list_selection_changed_cb(self, li, it):
-        self.top_widget.tasks_list.rebuild()
+        if not self._freezed:
+            self.top_widget.tasks_list.rebuild()
 
     def populate_lists(self):
+        tags = {} # key: tag_name  val: num_tasks
+        selected = [ it.text for it in chain(self.cxts_list.selected_items,
+                                             self.projs_list.selected_items) ]
+
+        for task in TASKS:
+            for name in chain(task.projects, task.contexts):
+                tags[name] = tags[name] + 1 if name in tags else 1
+
+        self._freezed = True
         self.cxts_list.clear()
         self.projs_list.clear()
-        contexts = []
-        projects = []
-        for t in TASKS:
-            contexts.extend(t.contexts)
-            projects.extend(t.projects)
-
-        for c in sorted(set(contexts)):
-            name = '@' + c
-            color = options.tag_colors.get(name, options.def_ctx_color)
-            rect = ColorRect(self, color, name)
-            it = self.cxts_list.item_append(name)
-            it.part_content_set('start', rect)
-        self.cxts_list.go()
-
-        for p in sorted(set(projects)):
-            name = '+' + p
-            color = options.tag_colors.get(name, options.def_prj_color)
-            rect = ColorRect(self, color, name)
-            it = self.projs_list.item_append(name)
-            it.part_content_set('start', rect)
-        self.projs_list.go()
+        for name, num in sorted(tags.items()):
+            rect = ColorRect(self, tag_color_get(name), name)
+            num = Label(self, text=str(num), style='marker')
+            if name.startswith('+'):
+                it = self.projs_list.item_append(name, rect, num)
+            else:
+                it = self.cxts_list.item_append(name, rect, num)
+            if name in selected:
+                it.selected = True
+        self._freezed = False
 
 
 class ColorRect(Frame):
@@ -582,6 +583,7 @@ class TasksList(Genlist):
             task.raw_txt = entry.text
             popup.delete()
             self.update_selected()
+            self.top_widget.filters.populate_lists()
 
     def _gl_g_text_get(self, obj, part, group_name):
         if group_name == '+': return 'Tasks without any projects'
@@ -701,6 +703,7 @@ class TaskPropsMenu(Menu):
         self.top_widget.task_note.clear()
         self._task.delete()
         self.top_widget.tasks_list.rebuild()
+        self.top_widget.filters.populate_lists()
 
 
 class TaskNote(Entry):
