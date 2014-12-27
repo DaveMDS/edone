@@ -77,7 +77,7 @@ class EdoneWin(StandardWindow):
         # the window
         StandardWindow.__init__(self, "edone", "Edone")
         self.callback_delete_request_add(lambda o: self.safe_quit())
-        self.focus_highlight_enabled = True
+        # self.focus_highlight_enabled = True
 
         # main vertical box
         vbox = Box(self, size_hint_weight=EXPAND_BOTH)

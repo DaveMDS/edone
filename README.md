@@ -12,6 +12,7 @@ See the [Todo.txt](http://todotxt.com) website for more info, or the
 [File Format Specifications](https://github.com/ginatrapani/todo.txt-cli/wiki/The-Todo.txt-Format)
 if you are intrestend in the details.
 
+![Screenshot](https://github.com/davemds/edone/blob/master/data/screenshot.png)
 
 ## Features ##
 
