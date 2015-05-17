@@ -577,6 +577,11 @@ class TasksList(Genlist):
 
         pp.show()
 
+        en.cursor_begin_set()
+        en.cursor_selection_begin()
+        en.cursor_end_set()
+        en.cursor_selection_end()
+
     def _task_edit_end(self, task, entry, popup):
         new_raw = entry.text
         if new_raw:
