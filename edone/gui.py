@@ -114,7 +114,10 @@ class EdoneWin(StandardWindow):
 
         # new task button
         b = Button(hbox1, text='New Task', focus_allow=False)
-        b.content = Icon(hbox1, standard='add')
+        try:
+            b.content = Icon(hbox1, standard='add')
+        except RuntimeWarning: # icon not found
+            pass
         b.callback_clicked_add(lambda b: self.task_add())
         hbox1.pack_end(b)
         b.show()
