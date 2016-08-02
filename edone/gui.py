@@ -80,6 +80,14 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU General Public License along with this program.  If not, see http://www.gnu.org/licenses/.<br><br>
 """
 
+class SafeIcon(Icon):
+    def __init__(self, parent, icon_name, **kargs):
+        Icon.__init__(self, parent, **kargs)
+        try:
+            self.standard = icon_name
+        except:
+            print("ERROR: Cannot find icon: '%s'" % icon_name)
+
 
 class EdoneWin(StandardWindow):
     def __init__(self):
@@ -114,10 +122,7 @@ class EdoneWin(StandardWindow):
 
         # new task button
         b = Button(hbox1, text='New Task', focus_allow=False)
-        try:
-            b.content = Icon(hbox1, standard='add')
-        except RuntimeWarning: # icon not found
-            pass
+        b.content = SafeIcon(hbox1, 'list-add')
         b.callback_clicked_add(lambda b: self.task_add())
         hbox1.pack_end(b)
         b.show()
@@ -133,7 +138,7 @@ class EdoneWin(StandardWindow):
                    size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
         en.part_text_set('guide', 'search')
         en.callback_changed_user_add(self._search_changed_user_cb)
-        en.content_set('end', Icon(en, standard='find', size_hint_min=(20,20)))
+        en.content_set('end', SafeIcon(en, 'edit-find', size_hint_min=(20,20)))
         hbox1.pack_end(en)
         en.show()
         self.search_entry = en
@@ -217,7 +222,7 @@ class OptionsMenu(Button):
     def __init__(self, parent):
         self._menu = None
         Button.__init__(self, parent, text='Menu', focus_allow=False,
-                        content=Icon(parent, standard='home'))
+                        content=SafeIcon(parent, 'user-home'))
         self.callback_pressed_add(self._button_pressed_cb)
 
     def _button_pressed_cb(self, btn):
@@ -232,18 +237,18 @@ class OptionsMenu(Button):
         self._menu = m
 
         # main actions (save, reload, quit)
-        it = m.item_add(None, 'Save', 'folder',
+        it = m.item_add(None, 'Save', 'document-save',
                         lambda m,i: self.top_widget.save())
         if need_save() is False:
             it.disabled = True
 
-        m.item_add(None, 'Reload', 'refresh',
+        m.item_add(None, 'Reload', 'view-refresh',
                    lambda m,i: self.top_widget.reload())
 
-        m.item_add(None, 'Quit', 'exit',
+        m.item_add(None, 'Quit', 'window-close',
                    lambda m,i: self.top_widget.safe_quit())
 
-        m.item_add(None, 'Info and help', 'info',
+        m.item_add(None, 'Info and help', 'help-about',
                    lambda m,i: InfoWin(self.top_widget))
 
         # Todo.txt file...
