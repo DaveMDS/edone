@@ -138,7 +138,7 @@ class EdoneWin(StandardWindow):
                    size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
         en.part_text_set('guide', 'search')
         en.callback_changed_user_add(self._search_changed_user_cb)
-        en.content_set('end', SafeIcon(en, 'edit-find', size_hint_min=(20,20)))
+        en.content_set('icon', SafeIcon(en, 'edit-find', size_hint_min=(16,16)))
         hbox1.pack_end(en)
         en.show()
         self.search_entry = en
