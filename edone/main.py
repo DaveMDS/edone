@@ -27,6 +27,12 @@ from efl import elementary as elm
 from edone.utils import options, config_path
 from edone.gui import EdoneWin
 
+# setup efl logging
+import logging
+elog = logging.getLogger("efl")
+elog.addHandler(logging.StreamHandler())
+elog.setLevel(logging.INFO)
+
 
 def main():
 
