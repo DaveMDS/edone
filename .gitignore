@@ -3,3 +3,4 @@ build
 eggs
 sdist
 __pycache__
+installed_files.txt

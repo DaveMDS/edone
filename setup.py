@@ -2,7 +2,6 @@
 
 import sys
 from distutils.core import setup
-from distutils.version import StrictVersion
 
 
 # require python 3
@@ -14,10 +13,11 @@ if sys.version_info < (3,2,0):
 
 
 # require efl >= 1.18
-from efl import __version__ as efl_version
-if StrictVersion(efl_version) < '1.18':
+from efl import __version_info__ as efl_version
+if efl_version < (1,18,0):
     print('Your python-efl version is too old. ' \
-          'Found: %s  (need >= 1.18)' % efl_version)
+          'Found: %d.%d.%d  (need >= 1.18.0)' % (
+          efl_version[0], efl_version[1], efl_version[2]))
     exit(1)
 
 
