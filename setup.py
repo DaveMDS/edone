@@ -1,25 +1,52 @@
 #!/usr/bin/env python
 
+import sys
 from distutils.core import setup
+from distutils.version import StrictVersion
+
+
+# require python 3
+if sys.version_info < (3,2,0):
+    print("Your python version is too old. " \
+          "Found: %d.%d.%d  (need >= 3.2.0)" % (
+          sys.version_info[0], sys.version_info[1], sys.version_info[2]))
+    exit(1)
+
+
+# require efl >= 1.18
+from efl import __version__ as efl_version
+if StrictVersion(efl_version) < '1.18':
+    print('Your python-efl version is too old. ' \
+          'Found: %s  (need >= 1.18)' % efl_version)
+    exit(1)
+
+
+from efl.utils.setup import build_extra, build_fdo, build_i18n, uninstall
+from edone import __version__
+
 
 setup(
     name = 'edone',
-    version = '0.9', # Don't forget to change also in gui.py
-    description = 'Getting-Things-Done',
-    long_description = 'Getting-Things-Done written in Python-EFL',
-    license = "GNU GPL",
+    version = __version__,
+    description = 'Task (todo) manager',
+    long_description = 'A complete gui for your Todo.txt files',
+    license = "GPLv3",
     author = 'Dave Andreoli',
     author_email = 'dave@gurumeditation.it',
     packages = ['edone'],
-    requires = ['efl', 'xdg'],
+    requires = ['efl (>=1.18)', 'xdg'],
     provides = ['edone'],
+    scripts = ['bin/edone'],
     package_data = {
         'edone': ['themes/*/*'],
     },
-    scripts = ['bin/edone'],
-    data_files = [
-        ('share/applications', ['data/edone.desktop']),
-        ('share/icons', ['data/icons/256x256/edone.png']),
-        ('share/icons/hicolor/256x256/apps', ['data/icons/256x256/edone.png']),
-    ]
+    cmdclass={
+        'build': build_extra,
+        'build_fdo': build_fdo,
+        #  'build_i18n': build_i18n,
+        'uninstall': uninstall,
+    },
+    command_options={
+        'install': {'record': ('setup.py', 'installed_files.txt')}
+    },
 )

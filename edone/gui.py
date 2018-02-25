@@ -50,6 +50,7 @@ from efl.elementary.separator import Separator
 
 from edone.utils import options, theme_resource_get, tag_color_get
 from edone.tasks import Task, TASKS, load_from_file, save_to_file, need_save
+from edone import __version__ as VERSION
 
 
 EXPAND_BOTH = EVAS_HINT_EXPAND, EVAS_HINT_EXPAND
@@ -59,7 +60,6 @@ FILL_BOTH = EVAS_HINT_FILL, EVAS_HINT_FILL
 FILL_HORIZ = EVAS_HINT_FILL, 0.5
 FILL_VERT = 0.5, EVAS_HINT_FILL
 
-VERSION = '0.9'
 DONE_FONT = 'color=#AAA strikethrough=on strikethrough_color=#222'
 INFO = """
 <subtitle>Info</subtitle><br>
