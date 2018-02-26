@@ -34,15 +34,15 @@ class Task(object):
         self._raw_txt = raw_text
         self._completed = False
         self._text = 'todo'
-        self._priority = None # 'A'
-        self._projects = [] # +
-        self._contexts = [] # @
+        self._priority = None  # 'A'
+        self._projects = []  # +
+        self._contexts = []  # @
         self._creation_date = '2014-12-30'
         self._completion_date = '2014-12-31'
 
-        self._progress = None # int(0-100)     TAG = prog:XX
-        self._note = None     # note file name TAG = note:XXXX.txt
-        # self._files = []    # files:
+        self._progress = None  # int(0-100)     TAG = prog:XX
+        self._note = None      # note file name TAG = note:XXXX.txt
+        # self._files = []     # files:
 
         if raw_text:
             self._parse_from_raw()
@@ -55,7 +55,7 @@ class Task(object):
 
     def __setattr__(self, name, value):
         global _need_save
-        
+
         if name.startswith('_'):
             object.__setattr__(self, name, value)
         else:
@@ -88,7 +88,7 @@ class Task(object):
                 if not os.path.exists(fname):
                     break
                 i += 1
-            
+
             # store filename triggering _raw_from_props()
             self.note = os.path.join(_notes_path, fname)
 
@@ -189,6 +189,7 @@ def need_save():
 
 def load_from_file(path):
     global _notes_path
+
     print('Loading tasks from file: "%s"' % path)
 
     _notes_path = path + '.notes'
@@ -200,9 +201,9 @@ def load_from_file(path):
             TASKS.append(t)
 
 
-
 def save_to_file(path):
     global _need_save
+
     print('Saving tasks to file: "%s"' % path)
 
     with open(path, 'w') as f:
