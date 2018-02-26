@@ -71,7 +71,7 @@ class EdoneWin(elm.StandardWindow):
         self.main_panes = None
 
         # the window
-        elm.StandardWindow.__init__(self, "edone", "Edone")
+        elm.StandardWindow.__init__(self, 'edone', 'Edone')
         self.callback_delete_request_add(lambda o: self.safe_quit())
         # self.focus_highlight_enabled = True
 
@@ -83,7 +83,8 @@ class EdoneWin(elm.StandardWindow):
         ### Header ###
         hbox1 = elm.Box(vbox, horizontal=True)
         fr = elm.Frame(vbox, style='outdent_bottom', content=hbox1,
-                       size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
+                       size_hint_weight=EXPAND_HORIZ,
+                       size_hint_align=FILL_HORIZ)
         vbox.pack_end(fr)
         fr.show()
 
@@ -100,7 +101,7 @@ class EdoneWin(elm.StandardWindow):
         b.show()
 
         # title
-        title = elm.Label(hbox1, text="Getting Things Done", scale=2.0,
+        title = elm.Label(hbox1, text='Getting Things Done', scale=2.0,
                           size_hint_weight=EXPAND_HORIZ,
                           size_hint_align=FILL_HORIZ)
         hbox1.pack_end(title)
@@ -142,11 +143,11 @@ class EdoneWin(elm.StandardWindow):
 
         ### the tasks list ###
         self.tasks_list = TasksList(panes)
-        panes.part_content_set("left", self.tasks_list)
+        panes.part_content_set('left', self.tasks_list)
 
         ### the single task view ###
         self.task_note = TaskNote(panes)
-        panes.part_content_set("right", self.task_note)
+        panes.part_content_set('right', self.task_note)
 
         # show the window
         self.resize(800, 600)
@@ -313,11 +314,12 @@ class Filters(elm.Box):
     def __init__(self, parent):
         self._freezed = False  # used in populate to not trigger callbacks
         elm.Box.__init__(self, parent,
-                         size_hint_weight=EXPAND_VERT, size_hint_align=FILL_VERT)
+                         size_hint_weight=EXPAND_VERT,
+                         size_hint_align=FILL_VERT)
 
         # status (view: all, todo or done)
         seg = elm.SegmentControl(self, focus_allow=False)
-        for name, val in ('All','all'),('Todo','todo'),('Done','done'):
+        for name, val in ('All', 'all'), ('Todo', 'todo'), ('Done', 'done'):
             it = seg.item_add(None, name)
             it.data['view'] = val
             it.selected = True if options.view == val else False
