@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Davide Andreoli <dave@gurumeditation.it>
+# Copyright (C) 2015-2018 Davide Andreoli <dave@gurumeditation.it>
 #
 # This file is part of Edone.
 #
@@ -17,8 +17,6 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with Edone.  If not, see <http://www.gnu.org/licenses/>.
-
-from __future__ import absolute_import, print_function
 
 import os
 import datetime

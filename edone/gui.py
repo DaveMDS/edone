@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Davide Andreoli <dave@gurumeditation.it>
+# Copyright (C) 2015-2018 Davide Andreoli <dave@gurumeditation.it>
 #
 # This file is part of Edone.
 #
@@ -18,47 +18,19 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Edone.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import, print_function
-
 import os
 from operator import attrgetter
 from itertools import chain
 
 from efl import elementary as elm
-from efl.evas import Rectangle, EVAS_HINT_EXPAND, EVAS_HINT_FILL
-from efl.elementary.window import StandardWindow
-from efl.elementary.innerwindow import InnerWindow
-from efl.elementary.box import Box
-from efl.elementary.button import Button
-from efl.elementary.colorselector import Colorselector
-from efl.elementary.entry import Entry, ELM_TEXT_FORMAT_PLAIN_UTF8
-from efl.elementary.fileselector import Fileselector
-from efl.elementary.frame import Frame
-from efl.elementary.genlist import Genlist, GenlistItemClass, \
-    ELM_LIST_COMPRESS, ELM_GENLIST_ITEM_GROUP, \
-    ELM_OBJECT_SELECT_MODE_DISPLAY_ONLY
-from efl.elementary.icon import Icon
-from efl.elementary.label import Label
-from efl.elementary.list import List
-from efl.elementary.menu import Menu
-from efl.elementary.panes import Panes
-from efl.elementary.popup import Popup
-from efl.elementary.progressbar import Progressbar
-from efl.elementary.table import Table
-from efl.elementary.segment_control import SegmentControl
-from efl.elementary.separator import Separator
+from efl.evas import Rectangle, EXPAND_BOTH, EXPAND_HORIZ, EXPAND_VERT, \
+                     FILL_BOTH, FILL_HORIZ, FILL_VERT
 
 from edone.utils import options, theme_resource_get, tag_color_get
 from edone.tasks import Task, TASKS, load_from_file, save_to_file, need_save
 from edone import __version__ as VERSION
 
 
-EXPAND_BOTH = EVAS_HINT_EXPAND, EVAS_HINT_EXPAND
-EXPAND_HORIZ = EVAS_HINT_EXPAND, 0.0
-EXPAND_VERT = 0.0, EVAS_HINT_EXPAND
-FILL_BOTH = EVAS_HINT_FILL, EVAS_HINT_FILL
-FILL_HORIZ = EVAS_HINT_FILL, 0.5
-FILL_VERT = 0.5, EVAS_HINT_FILL
 
 DONE_FONT = 'color=#AAA strikethrough=on strikethrough_color=#222'
 INFO = """
@@ -80,16 +52,16 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU General Public License along with this program.  If not, see http://www.gnu.org/licenses/.<br><br>
 """
 
-class SafeIcon(Icon):
+class SafeIcon(elm.Icon):
     def __init__(self, parent, icon_name, **kargs):
-        Icon.__init__(self, parent, **kargs)
+        elm.Icon.__init__(self, parent, **kargs)
         try:
             self.standard = icon_name
         except:
             print("ERROR: Cannot find icon: '%s'" % icon_name)
 
 
-class EdoneWin(StandardWindow):
+class EdoneWin(elm.StandardWindow):
     def __init__(self):
         # main widget 'pointers'
         self.tasks_list = None
@@ -99,19 +71,19 @@ class EdoneWin(StandardWindow):
         self.main_panes = None
 
         # the window
-        StandardWindow.__init__(self, "edone", "Edone")
+        elm.StandardWindow.__init__(self, "edone", "Edone")
         self.callback_delete_request_add(lambda o: self.safe_quit())
         # self.focus_highlight_enabled = True
 
         # main vertical box
-        vbox = Box(self, size_hint_weight=EXPAND_BOTH)
+        vbox = elm.Box(self, size_hint_weight=EXPAND_BOTH)
         self.resize_object_add(vbox)
         vbox.show()
 
         ### Header ###
-        hbox1 = Box(vbox, horizontal=True)
-        fr = Frame(vbox, style='outdent_bottom', content=hbox1,
-                   size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
+        hbox1 = elm.Box(vbox, horizontal=True)
+        fr = elm.Frame(vbox, style='outdent_bottom', content=hbox1,
+                       size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
         vbox.pack_end(fr)
         fr.show()
 
@@ -121,21 +93,22 @@ class EdoneWin(StandardWindow):
         m.show()
 
         # new task button
-        b = Button(hbox1, text='New Task', focus_allow=False)
+        b = elm.Button(hbox1, text='New Task', focus_allow=False)
         b.content = SafeIcon(hbox1, 'list-add')
         b.callback_clicked_add(lambda b: self.task_add())
         hbox1.pack_end(b)
         b.show()
 
         # title
-        title = Label(hbox1, text="Getting Things Done", scale=2.0,
-                      size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
+        title = elm.Label(hbox1, text="Getting Things Done", scale=2.0,
+                          size_hint_weight=EXPAND_HORIZ,
+                          size_hint_align=FILL_HORIZ)
         hbox1.pack_end(title)
         title.show()
 
         # search entry
-        en = Entry(hbox1, single_line=True, scrollable=True,
-                   size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
+        en = elm.Entry(hbox1, single_line=True, scrollable=True,
+                       size_hint_weight=EXPAND_HORIZ, size_hint_align=FILL_HORIZ)
         en.part_text_set('guide', 'search')
         en.callback_changed_user_add(self._search_changed_user_cb)
         en.content_set('icon', SafeIcon(en, 'edit-find', size_hint_min=(16,16)))
@@ -144,23 +117,24 @@ class EdoneWin(StandardWindow):
         self.search_entry = en
 
         ### Main horizontal box ###
-        hbox = Box(vbox, horizontal=True,
-                   size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
+        hbox = elm.Box(vbox, horizontal=True,
+                       size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
         vbox.pack_end(hbox)
         hbox.show()
 
         # the filters box widget (inside a padding frame)
         self.filters = Filters(hbox)
-        fr = Frame(hbox, style='pad_medium', content=self.filters,
-                   size_hint_weight=EXPAND_VERT, size_hint_align=FILL_VERT)
+        fr = elm.Frame(hbox, style='pad_medium', content=self.filters,
+                       size_hint_weight=EXPAND_VERT, size_hint_align=FILL_VERT)
         hbox.pack_end(fr)
         fr.show()
 
         ### the main panes (horiz or vert)
-        panes = Panes(hbox, horizontal=not options.horiz_layout,
-                      content_left_min_relative_size=0.3,
-                      content_right_min_relative_size=0.1,
-                      size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
+        panes = elm.Panes(hbox, horizontal=not options.horiz_layout,
+                          content_left_min_relative_size=0.3,
+                          content_right_min_relative_size=0.1,
+                          size_hint_weight=EXPAND_BOTH,
+                          size_hint_align=FILL_BOTH)
         panes.content_left_size = 1.0
         hbox.pack_end(panes)
         panes.show()
@@ -192,18 +166,18 @@ class EdoneWin(StandardWindow):
         if need_save() is False:
             elm.exit()
         else:
-            pp = Popup(self, text="You have unsave changes, if you don't save now all your recent modification will be lost.")
+            pp = elm.Popup(self, text="You have unsave changes, if you don't save now all your recent modification will be lost.")
             pp.part_text_set('title,text', 'Save changes to your txt file?')
 
-            btn = Button(pp, text='Close without saving')
+            btn = elm.Button(pp, text='Close without saving')
             btn.callback_clicked_add(lambda b: elm.exit())
             pp.part_content_set('button1', btn)
 
-            btn = Button(pp, text='Cancel')
+            btn = elm.Button(pp, text='Cancel')
             btn.callback_clicked_add(lambda b: pp.delete())
             pp.part_content_set('button2', btn)
 
-            btn = Button(pp, text='Save')
+            btn = elm.Button(pp, text='Save')
             btn.callback_clicked_add(lambda b: self.save(True))
             pp.part_content_set('button3', btn)
 
@@ -218,11 +192,11 @@ class EdoneWin(StandardWindow):
         self.tasks_list.rebuild()
 
 
-class OptionsMenu(Button):
+class OptionsMenu(elm.Button):
     def __init__(self, parent):
         self._menu = None
-        Button.__init__(self, parent, text='Menu', focus_allow=False,
-                        content=SafeIcon(parent, 'user-home'))
+        elm.Button.__init__(self, parent, text='Menu', focus_allow=False,
+                            content=SafeIcon(parent, 'user-home'))
         self.callback_pressed_add(self._button_pressed_cb)
 
     def _button_pressed_cb(self, btn):
@@ -233,7 +207,7 @@ class OptionsMenu(Button):
             return
 
         # build a new menu
-        m = Menu(self.top_widget)
+        m = elm.Menu(self.top_widget)
         self._menu = m
 
         # main actions (save, reload, quit)
@@ -307,17 +281,18 @@ class OptionsMenu(Button):
     def _file_change(self):
         # hack to make popup respect min_size
         rect = Rectangle(self.parent.evas, size_hint_min=(400,400))
-        tb = Table(self.parent)
+        tb = elm.Table(self.parent)
         tb.pack(rect, 0, 0, 1, 1)
 
         # show the fileselector inside a popup
-        popup = Popup(self.top_widget, content=tb)
+        popup = elm.Popup(self.top_widget, content=tb)
         popup.part_text_set('title,text', 'Choose the Todo.txt file to use')
         popup.show()
 
         # the fileselector widget
-        fs = Fileselector(popup, is_save=False, expandable=False,
-                        size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
+        fs = elm.Fileselector(popup, is_save=False, expandable=False,
+                              size_hint_weight=EXPAND_BOTH,
+                              size_hint_align=FILL_BOTH)
         fs.callback_activated_add(self._file_change_done, popup)
         fs.callback_done_add(self._file_change_done, popup)
         try:
@@ -334,14 +309,14 @@ class OptionsMenu(Button):
         popup.delete()
 
 
-class Filters(Box):
+class Filters(elm.Box):
     def __init__(self, parent):
         self._freezed = False  # used in populate to not trigger callbacks
-        Box.__init__(self, parent,
-                     size_hint_weight=EXPAND_VERT, size_hint_align=FILL_VERT)
+        elm.Box.__init__(self, parent,
+                         size_hint_weight=EXPAND_VERT, size_hint_align=FILL_VERT)
 
         # status (view: all, todo or done)
-        seg = SegmentControl(self, focus_allow=False)
+        seg = elm.SegmentControl(self, focus_allow=False)
         for name, val in ('All','all'),('Todo','todo'),('Done','done'):
             it = seg.item_add(None, name)
             it.data['view'] = val
@@ -351,26 +326,26 @@ class Filters(Box):
         seg.show()
 
         # @Projects list
-        label = Label(self, text="<b>Projects +</b>", scale=1.4)
+        label = elm.Label(self, text="<b>Projects +</b>", scale=1.4)
         self.pack_end(label)
         label.show()
 
-        self.projs_list = List(self, multi_select=True, focus_allow=False,
-                               size_hint_weight=EXPAND_BOTH,
-                               size_hint_align=FILL_BOTH)
+        self.projs_list = elm.List(self, multi_select=True, focus_allow=False,
+                                   size_hint_weight=EXPAND_BOTH,
+                                   size_hint_align=FILL_BOTH)
         self.projs_list.callback_selected_add(self._list_selection_changed_cb)
         self.projs_list.callback_unselected_add(self._list_selection_changed_cb)
         self.pack_end(self.projs_list)
         self.projs_list.show()
         
         # @Contexts list
-        label = Label(self, text="<b>Contexts @</b>", scale=1.4)
+        label = elm.Label(self, text="<b>Contexts @</b>", scale=1.4)
         self.pack_end(label)
         label.show()
 
-        self.cxts_list = List(self, multi_select=True, focus_allow=False,
-                              size_hint_weight=EXPAND_BOTH,
-                              size_hint_align=FILL_BOTH)
+        self.cxts_list = elm.List(self, multi_select=True, focus_allow=False,
+                                  size_hint_weight=EXPAND_BOTH,
+                                  size_hint_align=FILL_BOTH)
         self.cxts_list.callback_selected_add(self._list_selection_changed_cb)
         self.cxts_list.callback_unselected_add(self._list_selection_changed_cb)
         self.pack_end(self.cxts_list)
@@ -418,7 +393,7 @@ class Filters(Box):
         self.projs_list.clear()
         for name, num in sorted(tags.items()):
             rect = ColorRect(self, tag_color_get(name), name)
-            num = Label(self, text=str(num), style='marker')
+            num = elm.Label(self, text=str(num), style='marker')
             if name.startswith('+'):
                 it = self.projs_list.item_append(name, rect, num)
             else:
@@ -428,33 +403,34 @@ class Filters(Box):
         self._freezed = False
 
 
-class ColorRect(Frame):
+class ColorRect(elm.Frame):
     def __init__(self, parent, color, tag_name):
-        Frame.__init__(self, parent, style='pad_small', propagate_events=False)
+        elm.Frame.__init__(self, parent, style='pad_small',
+                           propagate_events=False)
         self._rect = Rectangle(self.evas, color=color)
         self._rect.on_mouse_down_add(lambda o,i: self._popup_build())
         self.content = self._rect
         self._tag_name = tag_name
 
     def _popup_build(self):
-        popup = Popup(self.top_widget)
+        popup = elm.Popup(self.top_widget)
         popup.part_text_set('title,text',
                             'Choose the color for %s' % self._tag_name)
         popup.callback_block_clicked_add(lambda p: popup.delete())
 
-        cs = Colorselector(popup, color=self._rect.color)
+        cs = elm.Colorselector(popup, color=self._rect.color)
         cs.callback_changed_add(lambda s: setattr(rect, 'color', cs.color))
         popup.content = cs
 
         rect = Rectangle(popup.evas, color=self._rect.color)
-        frame = Frame(popup, style='pad_small', content=rect)
+        frame = elm.Frame(popup, style='pad_small', content=rect)
         popup.part_content_set('button1', frame)
 
-        bt = Button(popup, text='Accept')
+        bt = elm.Button(popup, text='Accept')
         bt.callback_clicked_add(self._popup_accept_cb, popup, cs)
         popup.part_content_set('button2', bt)
 
-        bt = Button(popup, text='Cancel')
+        bt = elm.Button(popup, text='Cancel')
         bt.callback_clicked_add(lambda b: popup.delete())
         popup.part_content_set('button3', bt)
 
@@ -466,14 +442,15 @@ class ColorRect(Frame):
         popup.delete()
 
 
-class TasksList(Genlist):
+class TasksList(elm.Genlist):
     def __init__(self, parent):
-        self.itc = GenlistItemClass(item_style="default_style",
-                                    text_get_func=self._gl_text_get,
-                                    content_get_func=self._gl_content_get)
-        self.itcg = GenlistItemClass(item_style="group_index",
-                                     text_get_func=self._gl_g_text_get)
-        Genlist.__init__(self, parent, mode=ELM_LIST_COMPRESS, homogeneous=True)
+        self.itc = elm.GenlistItemClass(item_style="default_style",
+                                        text_get_func=self._gl_text_get,
+                                        content_get_func=self._gl_content_get)
+        self.itcg = elm.GenlistItemClass(item_style="group_index",
+                                         text_get_func=self._gl_g_text_get)
+        elm.Genlist.__init__(self, parent, mode=elm.ELM_LIST_COMPRESS,
+                             homogeneous=True)
         self.callback_selected_add(self._item_selected_cb)
         try: # TODO remove the try once 1.13 is released
             self.callback_clicked_right_add(self._item_clicked_right_cb)
@@ -499,8 +476,8 @@ class TasksList(Genlist):
         else:                           L = []
         for group_name in L:
             git = self.item_append(self.itcg, group_name,
-                                   flags=ELM_GENLIST_ITEM_GROUP)
-            git.select_mode = ELM_OBJECT_SELECT_MODE_DISPLAY_ONLY
+                                   flags=elm.ELM_GENLIST_ITEM_GROUP)
+            git.select_mode = elm.ELM_OBJECT_SELECT_MODE_DISPLAY_ONLY
             self.groups[group_name] = git
 
         if options.sort_by == 'pri':
@@ -566,20 +543,20 @@ class TasksList(Genlist):
         self.top_widget.task_note.update(item.data)
 
     def _task_edit_start(self, task):
-        pp = Popup(self.top_widget)
+        pp = elm.Popup(self.top_widget)
         pp.part_text_set('title,text', 'Edit task')
 
-        en = Entry(pp, editable=True, single_line=True, scrollable=True,
-                   text=task.raw_txt)
+        en = elm.Entry(pp, editable=True, single_line=True, scrollable=True,
+                       text=task.raw_txt)
         en.callback_activated_add(lambda e: self._task_edit_end(task, en, pp))
         en.callback_aborted_add(lambda e: pp.delete())
         pp.part_content_set('default', en)
 
-        b = Button(pp, text='Cancel')
+        b = elm.Button(pp, text='Cancel')
         b.callback_clicked_add(lambda b: pp.delete())
         pp.part_content_set('button1', b)
 
-        b = Button(pp, text='Accept')
+        b = elm.Button(pp, text='Accept')
         b.callback_clicked_add(lambda b: self._task_edit_end(task, en, pp))
         pp.part_content_set('button2', b)
 
@@ -625,31 +602,31 @@ class TasksList(Genlist):
         if part == 'elm.swallow.icon':
             if task.priority is not None:
                 fname = task.priority + '.png'
-                return Icon(self, file=theme_resource_get(fname))
+                return elm.Icon(self, file=theme_resource_get(fname))
 
         elif part == 'elm.swallow.end':
             ends = []
 
             if task.progress is not None:
                 val = float(task.progress) / 100
-                ends.append(Progressbar(self, span_size=100, value=val))
+                ends.append(elm.Progressbar(self, span_size=100, value=val))
 
             if task.note is not None:
-                ends.append(Icon(self, file=theme_resource_get('note.png'),
-                                 size_hint_min=(20,20)))
+                ends.append(elm.Icon(self, file=theme_resource_get('note.png'),
+                                     size_hint_min=(20,20)))
 
             if ends:
-                box = Box(self, horizontal=True)
+                box = elm.Box(self, horizontal=True)
                 for widget in ends:
                     widget.show()
                     box.pack_end(widget)
                 return box
 
 
-class TaskPropsMenu(Menu):
+class TaskPropsMenu(elm.Menu):
     def __init__(self, parent, task):
         self._task = task
-        Menu.__init__(self, parent)
+        elm.Menu.__init__(self, parent)
 
         # done/todo
         if task.completed:
@@ -698,14 +675,14 @@ class TaskPropsMenu(Menu):
         self.top_widget.tasks_list.update_selected()
 
     def _confirm_delete(self, m, item):
-        pp = Popup(self.top_widget, text=self._task.text)
+        pp = elm.Popup(self.top_widget, text=self._task.text)
         pp.part_text_set('title,text', 'Confirm task deletion?')
 
-        btn = Button(pp, text='Cancel')
+        btn = elm.Button(pp, text='Cancel')
         btn.callback_clicked_add(lambda b: pp.delete())
         pp.part_content_set('button1', btn)
 
-        btn = Button(pp, text='Delete Task')
+        btn = elm.Button(pp, text='Delete Task')
         btn.callback_clicked_add(self._delete_confirmed, pp)
         pp.part_content_set('button2', btn)
 
@@ -719,13 +696,14 @@ class TaskPropsMenu(Menu):
         self.top_widget.filters.populate_lists()
 
 
-class TaskNote(Entry):
+class TaskNote(elm.Entry):
     GUIDE1 = 'Select a task and click here to add additional notes to the task.'
     GUIDE2 = 'Click here to add additional notes to the task.'
     def __init__(self, parent):
         self.task = None
-        Entry.__init__(self, parent, scrollable=True, disabled=True,
-                       size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
+        elm.Entry.__init__(self, parent, scrollable=True, disabled=True,
+                           size_hint_weight=EXPAND_BOTH,
+                           size_hint_align=FILL_BOTH)
         self.part_text_set('guide', self.GUIDE1)
         self.callback_clicked_add(self._clicked_cb)
         self.callback_unfocused_add(self._unfocused_cb)
@@ -739,7 +717,7 @@ class TaskNote(Entry):
 
         if self.task and self.task.note:
             try:
-                self.file_set(self.task.note, ELM_TEXT_FORMAT_PLAIN_UTF8)
+                self.file_set(self.task.note, elm.ELM_TEXT_FORMAT_PLAIN_UTF8)
             except:
                 pass
             self.disabled = False
@@ -768,28 +746,28 @@ class TaskNote(Entry):
         self.focus = True
 
 
-class InfoWin(InnerWindow):
+class InfoWin(elm.InnerWindow):
     def __init__(self, parent):
-        InnerWindow.__init__(self, parent)
+        elm.InnerWindow.__init__(self, parent)
 
-        vbox = Box(self)
+        vbox = elm.Box(self)
         vbox.show()
         self.content = vbox
 
-        title = Label(self, scale=2.0, text='Edone %s' % VERSION)
+        title = elm.Label(self, scale=2.0, text='Edone %s' % VERSION)
         title.show()
         vbox.pack_end(title)
 
-        en = Entry(self, text=INFO, editable=False, scrollable=True,
-                   size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
+        en = elm.Entry(self, text=INFO, editable=False, scrollable=True,
+                       size_hint_weight=EXPAND_BOTH, size_hint_align=FILL_BOTH)
         en.show()
         vbox.pack_end(en)
 
-        sep = Separator(self, horizontal=True)
+        sep = elm.Separator(self, horizontal=True)
         sep.show()
         vbox.pack_end(sep)
 
-        close = Button(self, text='Close')
+        close = elm.Button(self, text='Close')
         close.callback_clicked_add(lambda b: self.delete())
         close.show()
         vbox.pack_end(close)

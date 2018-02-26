@@ -52,8 +52,8 @@ if you are intrestend in the details.
 
 ## Requirements ##
 
-* Python 2.7 or higher
-* Python-EFL 1.13 or higher
+* Python 3.2 or higher
+* Python-EFL 1.18 or higher
 * python modules: efl, xdg
 
 
@@ -67,9 +67,9 @@ if you are intrestend in the details.
 
  `python setup.py install --user`
 
-* To install for different version of python:
+* To uninstall:
 
- `pythonX setup.py install`
+ `python setup.py uninstall`
 
 * Install with a custom prefix:
 
