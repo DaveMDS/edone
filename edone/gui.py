@@ -481,11 +481,11 @@ class TasksList(elm.Genlist):
             self.groups[group_name] = git
 
         if options.sort_by == 'pri':
-            sort_key = attrgetter('raw_txt')
+            ordered = sorted(TASKS, key=attrgetter('raw_txt'))
         else:
-            sort_key = None
+            ordered = TASKS
 
-        for t in sorted(TASKS, key=sort_key):
+        for t in ordered:
             if (options.view == 'done' and not t.completed) or \
                (options.view == 'todo' and t.completed):
                 continue
