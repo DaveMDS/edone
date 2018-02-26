@@ -452,9 +452,7 @@ class TasksList(elm.Genlist):
         elm.Genlist.__init__(self, parent, mode=elm.ELM_LIST_COMPRESS,
                              homogeneous=True)
         self.callback_selected_add(self._item_selected_cb)
-        try: # TODO remove the try once 1.13 is released
-            self.callback_clicked_right_add(self._item_clicked_right_cb)
-        except: pass
+        self.callback_clicked_right_add(self._item_clicked_right_cb)
         self.callback_longpressed_add(self._item_clicked_right_cb)
         self.callback_activated_add(lambda gl,it: self._task_edit_start(it.data))
         self.show()
