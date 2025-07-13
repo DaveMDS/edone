@@ -20,11 +20,14 @@
 
 import os
 import pickle
-from xdg.BaseDirectory import xdg_config_home, xdg_cache_home
+
+
+HOME = os.path.expanduser('~')
+XDG_CONFIG_HOME = os.getenv('XDG_CONFIG_HOME') or os.path.join(HOME, '.config')
 
 
 script_path = os.path.dirname(__file__)
-config_path = os.path.join(xdg_config_home, 'edone')
+config_path = os.path.join(XDG_CONFIG_HOME, 'edone')
 config_file = os.path.join(config_path, 'config.pickle')
 
 

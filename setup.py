@@ -34,7 +34,7 @@ setup(
     author = 'Dave Andreoli',
     author_email = 'dave@gurumeditation.it',
     packages = ['edone'],
-    requires = ['efl (>=1.18)', 'xdg'],
+    requires = ['efl (>=1.18)'],
     provides = ['edone'],
     scripts = ['bin/edone'],
     package_data = {
